@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+# Enable jemalloc for reduced memory usage and latency.
+if [ -z "${LD_PRELOAD+x}" ]; then
+  LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+  export LD_PRELOAD
+fi
+
+# Wait for the database to be ready
+until pg_isready -h "${DB_HOST:-db}" -p "${DB_PORT:-5432}" -q; do
+  echo "Waiting for PostgreSQL..."
+  sleep 2
+done
+
+# Run migrations
+bundle exec rails db:migrate
+
+# Run the original command
+exec "$@"

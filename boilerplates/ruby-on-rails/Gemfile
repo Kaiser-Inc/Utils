@@ -1,0 +1,37 @@
+source "https://rubygems.org"
+ruby "3.3.0"
+
+gem "rails", "~> 8.1"
+gem "pg", "~> 1.1"
+gem "puma", ">= 5.0"
+gem "bcrypt", "~> 3.1.7"
+gem "jwt"
+gem "interactor"
+gem "blueprinter"
+gem "rack-cors"
+gem "dotenv-rails"
+gem "opentelemetry-sdk"
+gem "opentelemetry-instrumentation-rails"
+gem "opentelemetry-instrumentation-active_record"
+gem "opentelemetry-exporter-otlp"
+gem "bootsnap", require: false
+
+# OpenAPI / Swagger documentation
+gem "rswag-api"
+gem "rswag-ui"
+
+group :development, :test do
+  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
+  gem "rswag-specs"
+end
+
+group :test do
+  gem "rspec-rails"
+  gem "factory_bot_rails"
+  gem "shoulda-matchers"
+end
+
+group :development do
+  gem "rubocop-rails-omakase", require: false
+  gem "brakeman", require: false
+end

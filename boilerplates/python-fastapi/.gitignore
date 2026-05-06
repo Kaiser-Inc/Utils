@@ -1,0 +1,39 @@
+# Python-related
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables file — contains sensitive information
+.env
+
+# Editor/IDE specific files
+# VSCode
+.vscode/
+
+# JetBrains IDEs (PyCharm, etc.)
+.idea/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Logs and output files
+*.log
+*.out
+
+# Testing/Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docker
+.dockerignore
+
+# Ruff cache
+.ruff_cache/

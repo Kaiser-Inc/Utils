@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: boilerplate_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: boilerplate
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: boilerplate_jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+
+  api:
+    build:
+      context: .
+    container_name: boilerplate_api
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:

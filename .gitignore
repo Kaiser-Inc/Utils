@@ -1,0 +1,33 @@
+# Node
+boilerplates/node-fastify/node_modules/
+boilerplates/node-fastify/dist/
+
+# Python
+boilerplates/python-fastapi/__pycache__/
+boilerplates/python-fastapi/**/__pycache__/
+boilerplates/python-fastapi/*.pyc
+boilerplates/python-fastapi/.pytest_cache/
+boilerplates/python-fastapi/.ruff_cache/
+boilerplates/python-fastapi/htmlcov/
+boilerplates/python-fastapi/.coverage
+
+# Ruby
+boilerplates/ruby-on-rails/log/
+boilerplates/ruby-on-rails/tmp/
+boilerplates/ruby-on-rails/storage/
+boilerplates/ruby-on-rails/vendor/bundle/
+boilerplates/ruby-on-rails/.bundle/
+
+# Environment files
+.env
+**/.env
+
+# Knowledge graph output (graphify)
+graphify-out/
+
+# Claude Code
+.claude
+
+# OS
+.DS_Store
+Thumbs.db

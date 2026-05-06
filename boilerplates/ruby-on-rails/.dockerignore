@@ -1,0 +1,14 @@
+.git/
+.gitignore
+*.md
+log/
+tmp/
+storage/
+spec/
+test/
+.env*
+!.env*.example
+.bundle/
+vendor/
+Makefile
+swagger/

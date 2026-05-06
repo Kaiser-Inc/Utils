@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: boilerplate_development
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docker -d boilerplate_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+
+  api:
+    build: .
+    command: ["./bin/rails", "server", "-b", "0.0.0.0"]
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://docker:docker@db:5432/boilerplate_development
+      RAILS_ENV: development
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
+      OTLP_ENDPOINT: http://jaeger:4317
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/rails
+      - /rails/tmp
+
+volumes:
+  postgres_data:
