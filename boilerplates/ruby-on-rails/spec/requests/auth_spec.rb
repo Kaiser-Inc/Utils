@@ -1,13 +1,11 @@
 require "swagger_helper"
 
 RSpec.describe "Auth API", type: :request do
-  # ── Helper ──────────────────────────────────────────────────────────────────
   def generate_access_token(user)
     payload = { sub: user.id.to_s, role: user.role, type: "access", exp: 15.minutes.from_now.to_i }
     JWT.encode(payload, Rails.application.secret_key_base, "HS256")
   end
 
-  # ── POST /auth/register ─────────────────────────────────────────────────────
   path "/auth/register" do
     post "Register a new user" do
       tags        "Auth"
@@ -51,7 +49,6 @@ RSpec.describe "Auth API", type: :request do
     end
   end
 
-  # ── POST /auth/session ──────────────────────────────────────────────────────
   path "/auth/session" do
     post "Login — returns access token + sets refresh cookie" do
       tags        "Auth"
@@ -94,7 +91,6 @@ RSpec.describe "Auth API", type: :request do
     end
   end
 
-  # ── PATCH /auth/refresh ─────────────────────────────────────────────────────
   path "/auth/refresh" do
     patch "Refresh access token using HTTP-only cookie" do
       tags     "Auth"
@@ -144,7 +140,6 @@ RSpec.describe "Auth API", type: :request do
     end
   end
 
-  # ── PATCH /auth/logout ──────────────────────────────────────────────────────
   path "/auth/logout" do
     patch "Logout — revoke all refresh tokens" do
       tags     "Auth"

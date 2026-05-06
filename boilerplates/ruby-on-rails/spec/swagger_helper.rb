@@ -1,10 +1,8 @@
 require "rails_helper"
 
 RSpec.configure do |config|
-  # Diretório onde o swagger.yaml gerado será salvo
   config.swagger_root = Rails.root.join("swagger").to_s
 
-  # Definição OpenAPI 3.0 completa
   config.swagger_docs = {
     "v1/swagger.yaml" => {
       openapi: "3.0.1",
@@ -34,7 +32,6 @@ RSpec.configure do |config|
           }
         },
         schemas: {
-          # ── Response schemas ──────────────────────────────────────────────
           User: {
             type: :object,
             properties: {
@@ -61,7 +58,6 @@ RSpec.configure do |config|
             },
             required: %w[error]
           },
-          # ── Request schemas ───────────────────────────────────────────────
           RegisterRequest: {
             type: :object,
             properties: {

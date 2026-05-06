@@ -11,10 +11,8 @@ module Auth
 
         user = stored.user
 
-        # Revoke old token (rotation — one-time use)
         stored.destroy!
 
-        # Issue new pair
         new_access_token = generate_access_token(user)
         new_refresh_token_value = SecureRandom.hex(32)
         new_token_hash = Digest::SHA256.hexdigest(new_refresh_token_value)

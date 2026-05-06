@@ -1,13 +1,11 @@
 require "swagger_helper"
 
 RSpec.describe "Users API", type: :request do
-  # ── Helper ──────────────────────────────────────────────────────────────────
   def generate_access_token(user)
     payload = { sub: user.id.to_s, role: user.role, type: "access", exp: 15.minutes.from_now.to_i }
     JWT.encode(payload, Rails.application.secret_key_base, "HS256")
   end
 
-  # ── GET /users/me ────────────────────────────────────────────────────────────
   path "/users/me" do
     get "Get current user profile" do
       tags     "Users"
@@ -43,7 +41,6 @@ RSpec.describe "Users API", type: :request do
       end
     end
 
-    # ── PUT /users/me ──────────────────────────────────────────────────────────
     put "Update current user profile" do
       tags     "Users"
       consumes "application/json"
@@ -94,7 +91,6 @@ RSpec.describe "Users API", type: :request do
       end
     end
 
-    # ── DELETE /users/me ───────────────────────────────────────────────────────
     delete "Delete current user account" do
       tags     "Users"
       produces "application/json"

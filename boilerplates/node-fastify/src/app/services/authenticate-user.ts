@@ -14,7 +14,7 @@ export interface AuthenticateUserInput {
 export interface AuthenticateUserOutput {
   accessToken: string;
   rawRefreshToken: string;
-  tokenType: string;
+  tokenType: "bearer";
 }
 
 export class AuthenticateUserService {

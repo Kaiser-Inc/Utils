@@ -3,6 +3,7 @@ import {
   UserNotFoundError,
   UsernameAlreadyTakenError,
 } from "../domain/errors.js";
+import { Role } from "../domain/role.js";
 import { Email } from "../domain/value-objects/email.js";
 import { Username } from "../domain/value-objects/username.js";
 import type { UserRepository } from "../repositories/user-repository.js";
@@ -17,7 +18,7 @@ export interface UpdateUserOutput {
   id: string;
   username: string;
   email: string;
-  role: string;
+  role: Role;
   createdAt: Date;
 }
 

@@ -1,6 +1,5 @@
 import { setupTelemetry } from "./app/core/telemetry.js";
 
-// Must be initialized before anything else
 setupTelemetry();
 
 import { db, pool } from "./app/core/database.js";

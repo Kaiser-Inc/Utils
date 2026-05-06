@@ -1,5 +1,5 @@
 source "https://rubygems.org"
-ruby "3.3.0"
+ruby ">= 3.3.1"
 
 gem "rails", "~> 8.1"
 gem "pg", "~> 1.1"
@@ -21,7 +21,7 @@ gem "rswag-api"
 gem "rswag-ui"
 
 group :development, :test do
-  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
+  gem "debug", platforms: %i[mri windows]
   gem "rswag-specs"
 end
 

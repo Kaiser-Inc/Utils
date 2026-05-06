@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// ── Response schemas (compartilhados entre rotas e OpenAPI) ──────────────────
-
 export const UserSchema = z.object({
   id: z.string().uuid(),
   username: z.string(),

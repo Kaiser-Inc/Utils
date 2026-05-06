@@ -1,11 +1,12 @@
 import { UserNotFoundError } from "../domain/errors.js";
+import { Role } from "../domain/role.js";
 import type { UserRepository } from "../repositories/user-repository.js";
 
 export interface GetUserOutput {
   id: string;
   username: string;
   email: string;
-  role: string;
+  role: Role;
   createdAt: Date;
 }
 

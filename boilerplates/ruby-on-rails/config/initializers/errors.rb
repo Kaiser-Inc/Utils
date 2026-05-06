@@ -1,16 +1,15 @@
+# Domain error hierarchy — loaded at boot before any controller autoloads.
+# Defined here (not in app/errors/) to avoid Zeitwerk namespace conflicts.
 module Errors
   class ApplicationError < StandardError; end
 
-  # Auth errors
   class UnauthorizedError < ApplicationError; end
   class InvalidCredentialsError < ApplicationError; end
   class InvalidTokenError < ApplicationError; end
   class TokenExpiredError < ApplicationError; end
 
-  # Resource errors
   class UserNotFoundError < ApplicationError; end
 
-  # Validation / uniqueness errors
   class EmailAlreadyInUseError < ApplicationError; end
   class UsernameAlreadyInUseError < ApplicationError; end
 end

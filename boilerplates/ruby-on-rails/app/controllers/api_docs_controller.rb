@@ -1,7 +1,6 @@
 class ApiDocsController < ApplicationController
   skip_before_action :authenticate_user!
 
-  # GET /scalar
   # Serve a UI do Scalar apontando para o swagger.yaml gerado pelo rswag.
   # Para gerar o arquivo: make docs
   # Para acessar: http://localhost:3000/scalar

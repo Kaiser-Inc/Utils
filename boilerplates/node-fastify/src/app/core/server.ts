@@ -28,7 +28,6 @@ export async function createServer(deps: ServerDependencies): Promise<FastifyIns
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
 
-  // OpenAPI spec gerado automaticamente a partir dos schemas das rotas
   await fastify.register(fastifySwagger, {
     openapi: {
       openapi: "3.0.1",
@@ -57,29 +56,25 @@ export async function createServer(deps: ServerDependencies): Promise<FastifyIns
     },
   });
 
-  // Scalar UI — disponível em /docs
   if (settings.NODE_ENV !== "test") {
     await fastify.register(ScalarApiReference, {
       routePrefix: "/docs",
       configuration: {
         title: "Node Fastify Boilerplate API",
         theme: "purple",
-        defaultHttpClient: { targetKey: "javascript", clientKey: "fetch" },
+        defaultHttpClient: { targetKey: "js", clientKey: "fetch" },
       },
     });
   }
 
-  // Plugins
   await fastify.register(fastifyCors, corsOptions);
   await fastify.register(fastifyCookie);
   await fastify.register(fastifyJwt, { secret: settings.SECRET_KEY });
 
-  // Routes
   await healthRoutes(fastify);
   await authRoutes(fastify, deps.userRepo, deps.refreshTokenRepo);
   await userRoutes(fastify, deps.userRepo, deps.refreshTokenRepo);
 
-  // Global error handler
   fastify.setErrorHandler((error, _request, reply) => {
     fastify.log.error(error);
     return reply.status(500).send({ error: "Internal server error" });

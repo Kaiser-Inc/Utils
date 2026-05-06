@@ -27,7 +27,7 @@ export class TokenService {
   generateRefreshToken(): { raw: string; hash: string; expiresAt: Date } {
     const raw = randomBytes(40).toString("hex");
     const hash = createHash("sha256").update(raw).digest("hex");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     return { raw, hash, expiresAt };
   }
 

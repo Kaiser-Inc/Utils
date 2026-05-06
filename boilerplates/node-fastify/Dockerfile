@@ -7,7 +7,10 @@ WORKDIR /app
 
 # ── Stage 2: deps ─────────────────────────────────────────────────────────────
 # Instala TODAS as deps (incluindo devDependencies necessárias para build)
+# NODE_ENV sobrescrito: NODE_ENV=production herdado do base pularia devDeps (tsc, tsx, etc.)
 FROM base AS deps
+
+ENV NODE_ENV=development
 
 COPY package*.json ./
 RUN npm ci

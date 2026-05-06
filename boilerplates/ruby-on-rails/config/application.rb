@@ -22,10 +22,10 @@ module RailsBoilerplate
       g.orm :active_record, primary_key_type: :uuid
     end
 
-    # Autoload services, errors, blueprints
+    # Autoload services and blueprints subdirectories
+    # (app/errors.rb is at app/ root — autoloaded by default)
     config.autoload_paths += %W[
       #{config.root}/app/services
-      #{config.root}/app/errors
       #{config.root}/app/blueprints
     ]
   end

@@ -1,6 +1,6 @@
 # ── Stage 1: base ─────────────────────────────────────────────────────────────
 # Imagem mínima de runtime — base para os demais estágios
-ARG RUBY_VERSION=3.3.0
+ARG RUBY_VERSION=3.3.6
 FROM ruby:${RUBY_VERSION}-slim AS base
 
 WORKDIR /rails
@@ -52,6 +52,7 @@ COPY --from=app  /rails             /rails
 
 # Usuário não-root para segurança
 RUN useradd --create-home --shell /bin/bash rails \
+    && mkdir -p db log storage tmp \
     && chown -R rails:rails db log storage tmp
 USER rails
 

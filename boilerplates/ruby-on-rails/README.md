@@ -28,11 +28,11 @@ docker compose up
 | Serviço | URL |
 |---|---|
 | API | http://localhost:3000 |
-| Docs (Scalar) | http://localhost:3000/scalar |
+| Docs (Scalar UI) | http://localhost:3000/scalar |
 | Docs (Swagger UI) | http://localhost:3000/api-docs |
 | Jaeger | http://localhost:16686 |
 
-> Para gerar o `swagger.yaml`: `make docs` (requer ambiente rodando)
+> `swagger.yaml` está pré-gerado em `swagger/v1/swagger.yaml`. Para regenerar: `make docs` (requer ambiente local com gems de desenvolvimento).
 
 ## Comandos
 
@@ -114,7 +114,7 @@ Copie `.env.example` e ajuste:
 ```env
 DATABASE_URL=postgresql://docker:docker@db:5432/boilerplate_development
 RAILS_ENV=development
-RAILS_MASTER_KEY=your-master-key-here
+SECRET_KEY_BASE=troque-por-um-secret-forte
 CORS_ORIGIN=http://localhost:4200
 OTLP_ENDPOINT=http://jaeger:4317
 ```
