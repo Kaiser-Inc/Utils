@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file: ../.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  k6:
+    image: grafana/k6:0.56.0
+    command: run /scripts/auth.js
+    volumes:
+      - ./k6:/scripts
+    environment:
+      - BASE_URL=http://api:3000
+    depends_on:
+      api:
+        condition: service_healthy

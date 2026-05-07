@@ -118,3 +118,36 @@ SECRET_KEY_BASE=troque-por-um-secret-forte
 CORS_ORIGIN=http://localhost:4200
 OTLP_ENDPOINT=http://jaeger:4317
 ```
+
+## Load Testing
+
+Uses [k6](https://k6.io/) for stress and load testing.
+
+### Run
+
+```bash
+# Spin up isolated API + k6 via Docker
+make load-test
+
+# Run users scenario
+docker compose -f load-tests/docker-compose.loadtest.yml run --rm k6 run /scripts/users.js
+
+# Run against a live server
+k6 run -e BASE_URL=http://your-host:3000 load-tests/k6/auth.js
+```
+
+> **Note:** Set `RAILS_MASTER_KEY` in your environment before running load tests.
+
+### Scenarios
+
+| File | Scenario | VUs |
+|------|----------|-----|
+| `load-tests/k6/auth.js` | register → login → refresh → logout | 20 |
+| `load-tests/k6/users.js` | login → GET /users/me → PUT /users/me | 10 |
+
+### Key Metrics
+
+| Metric | Target |
+|--------|--------|
+| `http_req_duration` p95 | < 500 ms |
+| `http_req_failed` | < 1% |

@@ -8,9 +8,9 @@ import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod
 import "./types.js";
 import type { RefreshTokenRepository } from "../repositories/refresh-token-repository.js";
 import type { UserRepository } from "../repositories/user-repository.js";
-import { authRoutes } from "../http/routes/auth/index.js";
-import { healthRoutes } from "../http/routes/health.js";
-import { userRoutes } from "../http/routes/users/index.js";
+import { authRoutes } from "../http/routes/auth.routes.js";
+import { healthRoutes } from "../http/routes/health.routes.js";
+import { userRoutes } from "../http/routes/users.routes.js";
 import { corsOptions } from "./cors.js";
 import { settings } from "./settings.js";
 
@@ -72,8 +72,8 @@ export async function createServer(deps: ServerDependencies): Promise<FastifyIns
   await fastify.register(fastifyJwt, { secret: settings.SECRET_KEY });
 
   await healthRoutes(fastify);
-  await authRoutes(fastify, deps.userRepo, deps.refreshTokenRepo);
-  await userRoutes(fastify, deps.userRepo, deps.refreshTokenRepo);
+  await authRoutes(fastify, deps);
+  await userRoutes(fastify, deps);
 
   fastify.setErrorHandler((error, _request, reply) => {
     fastify.log.error(error);

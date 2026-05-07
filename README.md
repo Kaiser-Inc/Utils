@@ -27,6 +27,7 @@ Todos implementam:
 - **Documentação OpenAPI** com Scalar UI em `/docs` (Python/Node) ou `/scalar` + Swagger UI em `/api-docs` (Rails)
 - **Telemetria** com OpenTelemetry + Jaeger
 - **Linting** configurado (ruff / Biome / RuboCop)
+- **Load testing** tooling (Locust para Python, k6 para Node/Rails)
 
 ---
 

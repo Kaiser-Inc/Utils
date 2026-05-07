@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate
+.PHONY: dev test lint format migrate load-test
 
 dev:
 	uvicorn main:app --reload --app-dir src
@@ -14,3 +14,6 @@ format:
 
 migrate:
 	alembic upgrade head
+
+load-test:
+	docker compose -f load-tests/docker-compose.loadtest.yml up --build

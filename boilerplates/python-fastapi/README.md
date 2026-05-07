@@ -88,3 +88,36 @@ ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 OTLP_ENDPOINT=http://jaeger:4317
 ```
+
+## Load Testing
+
+Uses [Locust](https://locust.io/) for stress and load testing, with a master/worker setup.
+
+### Run
+
+```bash
+# Spin up isolated API + Locust via Docker (opens Web UI at localhost:8089)
+make load-test
+
+# Headless run (50 users, 5 spawn rate, 60s)
+docker compose -f load-tests/docker-compose.loadtest.yml run --rm \
+  locust-master --headless -u 50 -r 5 --run-time 60s
+
+# Stop
+docker compose -f load-tests/docker-compose.loadtest.yml down
+```
+
+### Scenarios
+
+| Class | Scenario | Weight |
+|-------|----------|--------|
+| `AuthFlow` | register → login → refresh → logout | 3 |
+| `AuthenticatedUser` | login → GET /users/me → PUT /users/me | 1 |
+
+### Key Metrics (Locust Web UI at :8089)
+
+| Metric | Target |
+|--------|--------|
+| Response time p95 | < 500 ms |
+| Failure rate | < 1% |
+| RPS | baseline for your hardware |

@@ -1,38 +1,29 @@
-import type { FastifyInstance } from "fastify";
-import { z } from "zod";
-import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { InvalidCredentialsError } from "../../../domain/errors.js";
 import type { RefreshTokenRepository } from "../../../repositories/refresh-token-repository.js";
 import type { UserRepository } from "../../../repositories/user-repository.js";
 import { AuthenticateUserService } from "../../../services/authenticate-user.js";
-import { AccessTokenSchema, ErrorSchema } from "../../schemas/index.js";
-
-const LoginBodySchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
 
 const REFRESH_TOKEN_COOKIE = "refresh_token";
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-export async function loginRoute(
-  fastify: FastifyInstance,
-  userRepo: UserRepository,
-  refreshTokenRepo: RefreshTokenRepository,
-): Promise<void> {
-  fastify.withTypeProvider<ZodTypeProvider>().post("/auth/session", {
-    schema: {
-      tags: ["Auth"],
-      summary: "Login — returns access token and sets refresh cookie",
-      security: [],
-      body: LoginBodySchema,
-      response: {
-        200: AccessTokenSchema,
-        401: ErrorSchema,
-      },
-    },
-  }, async (request, reply) => {
-    const service = new AuthenticateUserService(userRepo, refreshTokenRepo, fastify);
+type LoginBody = { email: string; password: string };
+
+export class LoginController {
+  constructor(
+    private readonly userRepo: UserRepository,
+    private readonly refreshTokenRepo: RefreshTokenRepository,
+  ) {}
+
+  handle = async (
+    request: FastifyRequest<{ Body: LoginBody }>,
+    reply: FastifyReply,
+  ): Promise<void> => {
+    const service = new AuthenticateUserService(
+      this.userRepo,
+      this.refreshTokenRepo,
+      request.server,
+    );
 
     try {
       const result = await service.execute(request.body);
@@ -55,5 +46,5 @@ export async function loginRoute(
       }
       throw err;
     }
-  });
+  };
 }
