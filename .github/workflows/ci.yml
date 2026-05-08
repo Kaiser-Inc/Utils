@@ -51,8 +51,13 @@ jobs:
         run: npm test
         env:
           NODE_ENV: test
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/boilerplate_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: boilerplate_test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
           SECRET_KEY: ci-test-secret-key-32-chars-long!!
+          REFRESH_TOKEN_SECRET: ci-test-refresh-secret-32-chars!!
 
       - name: Audit
         run: npm audit --audit-level=high
@@ -97,7 +102,11 @@ jobs:
         run: pytest --cov=src --cov-report=term-missing
         env:
           ENV: test
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/boilerplate_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: boilerplate_test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
           SECRET_KEY: ci-test-secret-key-32-chars-long!!
 
       - name: Audit

@@ -11,7 +11,7 @@ Rails.application.configure do
   # config.assume_ssl = true
   # config.force_ssl = true
 
-  config.log_tags = [:request_id]
+  config.log_tags = [ :request_id ]
   config.logger = ActiveSupport::TaggedLogging.logger(STDOUT)
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
@@ -20,7 +20,7 @@ Rails.application.configure do
   config.active_support.report_deprecations = false
 
   config.active_record.dump_schema_after_migration = false
-  config.active_record.attributes_for_inspect = [:id]
+  config.active_record.attributes_for_inspect = [ :id ]
 
   # config.hosts = ["api.yourapp.com"]
 end

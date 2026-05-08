@@ -5,7 +5,7 @@
 SEED_USERS = [
   { username: "admin", email: "admin@example.com", password: "password123", role: "admin" },
   { username: "alice", email: "alice@example.com", password: "password123", role: "user" },
-  { username: "bob",   email: "bob@example.com",   password: "password123", role: "user" },
+  { username: "bob",   email: "bob@example.com",   password: "password123", role: "user" }
 ].freeze
 
 SEED_USERS.each do |attrs|

@@ -10,7 +10,7 @@ Rails.application.configure do
   config.cache_classes = false
 
   config.log_level = :debug
-  config.log_tags = [:request_id]
+  config.log_tags = [ :request_id ]
 
   config.action_mailer.raise_delivery_errors = false
   config.action_mailer.perform_caching = false

@@ -132,7 +132,7 @@ RSpec.describe "Auth API", type: :request do
         let!(:user)         { create(:user) }
         let!(:raw_token)    { SecureRandom.hex(32) }
         let!(:token_hash)   { Digest::SHA256.hexdigest(raw_token) }
-        let!(:expired_token){ create(:refresh_token, :expired, user: user, token_hash: token_hash) }
+        let!(:expired_token) { create(:refresh_token, :expired, user: user, token_hash: token_hash) }
         let(:Cookie)        { "refresh_token=#{raw_token}" }
 
         run_test!
