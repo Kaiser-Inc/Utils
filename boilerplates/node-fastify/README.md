@@ -33,13 +33,39 @@ docker compose up
 ## Comandos
 
 ```bash
-make dev      # Iniciar em modo dev (tsx watch)
-make test     # Rodar testes (Vitest)
-make lint     # Verificar código (Biome)
-make format   # Formatar código (Biome)
-make migrate  # Rodar migrations Drizzle
-make generate # Gerar arquivos de migration
+make dev        # Iniciar em modo dev (tsx watch)
+make test       # Rodar testes (Vitest)
+make lint       # Verificar código (Biome)
+make format     # Formatar código (Biome)
+make migrate    # Rodar migrations Drizzle
+make generate   # Gerar arquivos de migration
+make seed       # Popular banco com dados de dev
+make audit      # Checar vulnerabilidades (npm audit --audit-level=high)
+make load-test  # Rodar k6 via Docker
 ```
+
+## Dados de desenvolvimento
+
+Popula o banco com 3 usuários:
+
+```bash
+make seed
+```
+
+| email | senha | role |
+|-------|-------|------|
+| admin@example.com | password123 | admin |
+| alice@example.com | password123 | user |
+| bob@example.com | password123 | user |
+
+## Bruno — API Collection
+
+Coleção completa de requests em `api-collection/`.
+
+1. Abra [Bruno](https://www.usebruno.com/) → **Open Collection** → selecione `boilerplates/node-fastify/api-collection/`
+2. Selecione environment **local** (aponta para `http://localhost:3000`)
+3. Execute **Login** primeiro — `accessToken` salvo automaticamente
+4. Demais requests já usam o token salvo
 
 ## Arquitetura
 
@@ -100,35 +126,35 @@ O handler global mapeia `DomainError` para os status HTTP corretos (401 Unauthor
 
 ## Load Testing
 
-Uses [k6](https://k6.io/) for stress and load testing.
+Utiliza [k6](https://k6.io/) para testes de carga e estresse.
 
-### Run
+### Execução
 
 ```bash
-# Spin up isolated API + k6 via Docker
+# Sobe API isolada + k6 via Docker
 make load-test
 
-# Run users scenario
+# Roda cenário de usuários
 docker compose -f load-tests/docker-compose.loadtest.yml run --rm k6 run /scripts/users.js
 
-# Run against a live server
-k6 run -e BASE_URL=http://your-host:3000 load-tests/k6/auth.js
+# Roda contra servidor externo
+k6 run -e BASE_URL=http://seu-host:3000 load-tests/k6/auth.js
 ```
 
-### Scenarios
+### Cenários
 
-| File | Scenario | VUs |
-|------|----------|-----|
+| Arquivo | Cenário | VUs |
+|---------|---------|-----|
 | `load-tests/k6/auth.js` | register → login → refresh → logout | 20 |
 | `load-tests/k6/users.js` | login → GET /users/me → PUT /users/me | 10 |
 
-### Key Metrics
+### Métricas
 
-| Metric | Target |
-|--------|--------|
+| Métrica | Meta |
+|---------|------|
 | `http_req_duration` p95 | < 500 ms |
 | `http_req_failed` | < 1% |
-| `auth_flow_success` rate | > 99% |
+| Taxa `auth_flow_success` | > 99% |
 
 ## Variáveis de ambiente
 

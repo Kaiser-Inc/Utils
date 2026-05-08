@@ -33,12 +33,94 @@ docker compose up
 ## Comandos
 
 ```bash
-make dev      # Iniciar em modo dev (sem Docker)
-make test     # Rodar testes com cobertura
-make migrate  # Rodar migrations Alembic
-make lint     # Verificar código (ruff check)
-make format   # Formatar código (ruff format)
+make dev             # Iniciar em modo dev (sem Docker)
+make test            # Rodar testes com cobertura
+make migrate         # Rodar migrations Alembic
+make lint            # Verificar código (ruff check)
+make format          # Formatar código (ruff format)
+make seed            # Popular banco com dados de dev
+make audit           # Checar vulnerabilidades (pip-audit)
+make load-test       # Rodar Locust via Docker
+make metrics-install # Instalar ferramentas de métricas
+make metrics         # Coletar métricas e gerar relatório
 ```
+
+## Métricas de Qualidade
+
+Suporte a coleta de métricas estáticas e dinâmicas para análise comparativa e estudos acadêmicos.
+
+### Instalação
+
+```bash
+make metrics-install
+```
+
+### Coleta
+
+```bash
+make metrics
+```
+
+Gera dois arquivos em `metrics/`:
+- `report_YYYY-MM-DD_HHMMSS.json` — dados brutos + sumário estruturado
+- `report_YYYY-MM-DD_HHMMSS.md` — relatório legível para inclusão em documentos
+
+### Métricas coletadas
+
+| Ferramenta | Métrica | Referência acadêmica |
+|------------|---------|----------------------|
+| `radon cc` | Complexidade ciclomática (McCabe) | McCabe, 1976 — IEEE |
+| `radon mi` | Índice de manutenibilidade (0–100) | Oman & Hagemeister, 1992 |
+| `radon hal` | Halstead (volume, esforço, bugs estimados) | Halstead, 1977 |
+| `pylint` | Score de qualidade (0–10) + issues por categoria | — |
+| `xenon` | Enforcement de thresholds de complexidade | — |
+| `pytest-cov` | Cobertura de testes (%) | — |
+
+### Interpretação
+
+**Complexidade ciclomática (CC):**
+A ≤ 5 (simples) → B ≤ 10 → C ≤ 15 → D ≤ 20 → E ≤ 25 → F > 25 (instável)
+
+**Índice de manutenibilidade (MI):**
+≥ 20 = alta manutenibilidade | 10–19 = moderada | < 10 = baixa
+
+**Bugs estimados (Halstead):**
+Estimativa matemática de defeitos latentes com base em operadores e operandos.
+
+### Uso para comparativo
+
+Para comparar projeto antigo vs. novo, colete em ambos e compare os JSONs:
+
+```bash
+# No projeto antigo
+python scripts/metrics.py --output-dir comparativo/antigo
+
+# No projeto novo
+python scripts/metrics.py --output-dir comparativo/novo
+```
+
+## Dados de desenvolvimento
+
+Popula o banco com 3 usuários:
+
+```bash
+make seed
+```
+
+| email | senha | role |
+|-------|-------|------|
+| admin@example.com | password123 | admin |
+| alice@example.com | password123 | user |
+| bob@example.com | password123 | user |
+
+## Bruno — API Collection
+
+Coleção completa de requests em `api-collection/`.
+
+1. Abra [Bruno](https://www.usebruno.com/) → **Open Collection** → selecione `boilerplates/python-fastapi/api-collection/`
+2. Selecione environment **local** (aponta para `http://localhost:8000`)
+3. Execute **Login** primeiro — `accessToken` salvo automaticamente
+4. Demais requests já usam o token salvo
 
 ## Arquitetura
 
@@ -97,35 +179,35 @@ OTLP_ENDPOINT=http://jaeger:4317
 
 ## Load Testing
 
-Uses [Locust](https://locust.io/) for stress and load testing, with a master/worker setup.
+Utiliza [Locust](https://locust.io/) para testes de carga e estresse, com setup master/worker.
 
-### Run
+### Execução
 
 ```bash
-# Spin up isolated API + Locust via Docker (opens Web UI at localhost:8089)
+# Sobe API isolada + Locust via Docker (UI disponível em localhost:8089)
 make load-test
 
-# Headless run (50 users, 5 spawn rate, 60s)
+# Execução headless (50 usuários, taxa 5/s, duração 60s)
 docker compose -f load-tests/docker-compose.loadtest.yml run --rm \
   locust-master --headless -u 50 -r 5 --run-time 60s
 
-# Stop
+# Parar
 docker compose -f load-tests/docker-compose.loadtest.yml down
 ```
 
-### Scenarios
+### Cenários
 
-| Class | Scenario | Weight |
-|-------|----------|--------|
+| Classe | Cenário | Peso |
+|--------|---------|------|
 | `AuthFlow` | register → login → refresh → logout | 3 |
 | `AuthenticatedUser` | login → GET /users/me → PUT /users/me | 1 |
 
-### Key Metrics (Locust Web UI at :8089)
+### Métricas (UI Locust em :8089)
 
-| Metric | Target |
-|--------|--------|
-| Response time p95 | < 500 ms |
-| Failure rate | < 1% |
-| RPS | baseline for your hardware |
+| Métrica | Meta |
+|---------|------|
+| Tempo de resposta p95 | < 500 ms |
+| Taxa de falha | < 1% |
+| RPS | baseline do seu hardware |
 
-> SLA targets: p95 < 500ms, failure rate < 1% — enforced via `--exit-code-on-error 1`
+> Metas de SLA: p95 < 500ms, taxa de falha < 1% — aplicadas via `--exit-code-on-error 1`

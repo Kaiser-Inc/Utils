@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate load-test audit seed
+.PHONY: dev test lint format migrate load-test audit seed metrics metrics-install
 
 dev:
 	uvicorn main:app --reload --app-dir src
@@ -23,3 +23,9 @@ audit:
 
 seed:
 	python scripts/seed.py
+
+metrics-install:
+	pip install -r requirements-metrics.txt
+
+metrics:
+	python scripts/metrics.py
