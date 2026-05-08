@@ -1,24 +1,18 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import {
-  EmailAlreadyInUseError,
-  UsernameAlreadyTakenError,
-} from "../../../domain/errors.js";
-import type { UserRepository } from "../../../repositories/user-repository.js";
-import { RegisterUserService } from "../../../services/register-user.js";
+import { EmailAlreadyInUseError, UsernameAlreadyTakenError } from "../../../domain/errors.js";
+import type { RegisterUserService } from "../../../services/register-user.js";
 
 type RegisterBody = { username: string; email: string; password: string };
 
 export class RegisterController {
-  constructor(private readonly userRepo: UserRepository) {}
+  constructor(private readonly service: RegisterUserService) {}
 
   handle = async (
     request: FastifyRequest<{ Body: RegisterBody }>,
     reply: FastifyReply,
   ): Promise<void> => {
-    const service = new RegisterUserService(this.userRepo);
-
     try {
-      const user = await service.execute(request.body);
+      const user = await this.service.execute(request.body);
       return reply.status(201).send(user);
     } catch (err) {
       if (err instanceof EmailAlreadyInUseError || err instanceof UsernameAlreadyTakenError) {

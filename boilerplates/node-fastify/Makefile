@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate load-test
+.PHONY: dev test lint format migrate load-test audit seed
 
 dev:
 	npm run dev
@@ -17,3 +17,9 @@ migrate:
 
 load-test:
 	docker compose -f load-tests/docker-compose.loadtest.yml run --rm k6 run /scripts/auth.js
+
+audit:
+	npm audit --audit-level=high
+
+seed:
+	npx tsx scripts/seed.ts

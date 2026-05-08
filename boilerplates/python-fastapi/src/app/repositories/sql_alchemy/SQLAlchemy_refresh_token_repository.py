@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -19,7 +19,7 @@ class SQLAlchemyRefreshTokenRepository(RefreshTokenRepository):
         self.session.commit()
 
     def exists(self, token_hash: str) -> bool:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return (
             self.session.query(RefreshTokenModel)
             .filter(

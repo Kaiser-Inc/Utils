@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.core.security import verify_password
 from app.domain.value_objects.email import Email
@@ -34,7 +34,7 @@ class AuthenticateUserService:
 
         refresh_token = self.token_service.create_refresh_token(user)
         refresh_token_hash = self.token_service.hash_refresh_token(refresh_token)
-        expires_at = datetime.utcnow() + timedelta(
+        expires_at = datetime.now(timezone.utc) + timedelta(
             days=self.token_service.REFRESH_EXPIRE_DAYS
         )
 

@@ -1,5 +1,6 @@
-import pytest
 from uuid import UUID
+
+import pytest
 
 from app.domain.role import Role
 from app.repositories.in_memory.in_memory_user_repository import InMemoryUserRepository

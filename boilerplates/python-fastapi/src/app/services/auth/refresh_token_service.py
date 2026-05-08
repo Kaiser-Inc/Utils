@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from jose import JWTError, jwt
+import jwt
 
 from app.core.settings import settings
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -25,7 +25,7 @@ class RefreshTokenService:
             payload = jwt.decode(
                 refresh_token, settings.secret_key, algorithms=["HS256"]
             )
-        except JWTError:
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             raise ValueError("Invalid refresh token")
 
         if payload.get("type") != "refresh":
@@ -50,7 +50,7 @@ class RefreshTokenService:
         new_refresh_token = self.token_service.create_refresh_token(user)
 
         refresh_token_hash = self.token_service.hash_refresh_token(new_refresh_token)
-        expires_at = datetime.utcnow() + timedelta(
+        expires_at = datetime.now(timezone.utc) + timedelta(
             days=self.token_service.REFRESH_EXPIRE_DAYS
         )
 

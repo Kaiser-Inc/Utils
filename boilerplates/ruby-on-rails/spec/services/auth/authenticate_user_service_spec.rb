@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Auth::Interactors::AuthenticateUserService do
   describe "#call" do
-    let!(:user) { create(:user, email: "auth@example.com", password: "pass123") }
+    let!(:user) { create(:user, email: "auth@example.com", password: "pass123", password_confirmation: "pass123") }
 
     context "with valid credentials" do
       it "succeeds and sets context.user" do

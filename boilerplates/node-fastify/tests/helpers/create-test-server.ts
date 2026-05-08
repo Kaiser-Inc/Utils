@@ -37,7 +37,7 @@ export async function registerAndLogin(
 
   const body = JSON.parse(loginResponse.body) as { access_token: string };
   const setCookie = loginResponse.headers["set-cookie"];
-  const cookieHeader = Array.isArray(setCookie) ? setCookie[0] : setCookie ?? "";
+  const cookieHeader = Array.isArray(setCookie) ? setCookie[0] : (setCookie ?? "");
 
   return {
     accessToken: body.access_token,

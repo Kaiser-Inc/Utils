@@ -1,0 +1,33 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchFileNames": ["boilerplates/node-fastify/**"],
+      "addLabels": ["node"]
+    },
+    {
+      "matchManagers": ["pip_requirements"],
+      "matchFileNames": ["boilerplates/python-fastapi/**"],
+      "addLabels": ["python"]
+    },
+    {
+      "matchManagers": ["bundler"],
+      "matchFileNames": ["boilerplates/ruby-on-rails/**"],
+      "addLabels": ["rails"]
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "matchPackageNames": ["node"],
+      "matchManagers": ["nodenv", "nvm"],
+      "enabled": false
+    }
+  ]
+}

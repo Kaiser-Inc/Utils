@@ -43,7 +43,14 @@ export class User {
 
   static reconstitute(props: ReconstituteUserProps): User {
     const role = props.role === Role.ADMIN ? Role.ADMIN : Role.USER;
-    return new User(props.id, props.username, props.email, props.hashedPassword, role, props.createdAt);
+    return new User(
+      props.id,
+      props.username,
+      props.email,
+      props.hashedPassword,
+      role,
+      props.createdAt,
+    );
   }
 
   get username(): string {

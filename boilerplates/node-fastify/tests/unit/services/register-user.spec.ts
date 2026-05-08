@@ -1,5 +1,8 @@
-import { describe, beforeEach, expect, it } from "vitest";
-import { EmailAlreadyInUseError, UsernameAlreadyTakenError } from "../../../src/app/domain/errors.js";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  EmailAlreadyInUseError,
+  UsernameAlreadyTakenError,
+} from "../../../src/app/domain/errors.js";
 import { InMemoryUserRepository } from "../../../src/app/repositories/in-memory/in-memory-user-repository.js";
 import { RegisterUserService } from "../../../src/app/services/register-user.js";
 

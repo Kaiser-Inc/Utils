@@ -13,10 +13,7 @@ export class RefreshController {
     private readonly refreshTokenRepo: RefreshTokenRepository,
   ) {}
 
-  handle = async (
-    request: FastifyRequest,
-    reply: FastifyReply,
-  ): Promise<void> => {
+  handle = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const rawToken = request.cookies[REFRESH_TOKEN_COOKIE];
 
     if (!rawToken) {

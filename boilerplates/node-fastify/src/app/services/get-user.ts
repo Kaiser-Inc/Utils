@@ -1,5 +1,5 @@
 import { UserNotFoundError } from "../domain/errors.js";
-import { Role } from "../domain/role.js";
+import type { Role } from "../domain/role.js";
 import type { UserRepository } from "../repositories/user-repository.js";
 
 export interface GetUserOutput {

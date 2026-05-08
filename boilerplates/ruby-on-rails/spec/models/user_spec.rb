@@ -19,7 +19,7 @@ RSpec.describe User, type: :model do
   end
 
   describe "enums" do
-    it { should define_enum_for(:role).with_values(user: "user", admin: "admin") }
+    it { should define_enum_for(:role).with_values(user: "user", admin: "admin").backed_by_column_of_type(:string) }
   end
 
   describe "default role" do

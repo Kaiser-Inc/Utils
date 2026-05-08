@@ -97,20 +97,32 @@ O Claude irá perguntar qual stack (python / node / rails), qual modo (lean / fu
 
 ```
 KaiserInc-Utils/
+├── .github/workflows/ci.yml   # CI: lint + test + audit para cada boilerplate
 ├── boilerplates/
-│   ├── python-fastapi/     # Clean Architecture + DDD (FastAPI)
-│   ├── node-fastify/       # Clean Architecture (Fastify + TypeScript)
-│   └── ruby-on-rails/      # Organizers + Interactors (Rails API)
-└── README.md               # este arquivo
+│   ├── python-fastapi/         # Clean Architecture + DDD (FastAPI)
+│   ├── node-fastify/           # Clean Architecture (Fastify + TypeScript)
+│   └── ruby-on-rails/          # Organizers + Interactors (Rails API)
+├── docs/adr/                   # Architecture Decision Records
+├── CONTRIBUTING.md             # Convenções de commit + spec de erros + checklist
+├── renovate.json               # Atualização automática de dependências
+└── README.md                   # este arquivo
 ```
 
 ---
 
 ## Contribuindo
 
-Ao adicionar um novo boilerplate ou ferramenta:
+Ver [CONTRIBUTING.md](CONTRIBUTING.md) para:
+- Convenção de commits (Conventional Commits)
+- Spec unificada de resposta de erro
+- Checklist completo de features por boilerplate
+- Guia para adicionar um novo stack
 
-1. Crie um diretório com nome descritivo da stack/propósito
-2. Inclua um `README.md` com stack, arquitetura, comandos e endpoints
-3. Garanta que `docker compose up` funcione do zero com `.env.example`
-4. Atualize este README com a entrada na tabela de conteúdo
+### Comandos úteis por boilerplate
+
+```bash
+make audit    # escaneia CVEs em dependências
+make lint     # verifica style/type errors
+make test     # roda suite completa de testes
+make load-test # executa k6 / Locust
+```

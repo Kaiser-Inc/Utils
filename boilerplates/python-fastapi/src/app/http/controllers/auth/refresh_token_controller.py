@@ -1,3 +1,5 @@
+import os
+
 from fastapi import Depends, HTTPException, Request, Response, status
 
 from app.http.dependencies.repositories import (
@@ -38,7 +40,7 @@ def refresh(
         key="refresh_token",
         value=tokens["refresh_token"],
         httponly=True,
-        secure=False,
+        secure=os.getenv("ENV", "development") == "production",
         samesite="lax",
         max_age=SEVEN_DAYS_IN_SECONDS,
         path="/auth/refresh",

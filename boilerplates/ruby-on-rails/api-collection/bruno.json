@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Ruby on Rails Boilerplate",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

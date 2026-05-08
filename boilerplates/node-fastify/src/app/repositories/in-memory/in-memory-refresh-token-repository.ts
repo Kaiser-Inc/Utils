@@ -9,9 +9,7 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 
   async findByHash(tokenHash: string): Promise<RefreshToken | null> {
     const now = new Date();
-    return (
-      this.items.find((t) => t.tokenHash === tokenHash && t.expiresAt > now) ?? null
-    );
+    return this.items.find((t) => t.tokenHash === tokenHash && t.expiresAt > now) ?? null;
   }
 
   async deleteByUserId(userId: string): Promise<void> {

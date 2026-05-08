@@ -3,14 +3,15 @@ import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
 import fastifySwagger from "@fastify/swagger";
 import ScalarApiReference from "@scalar/fastify-api-reference";
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyError, type FastifyInstance } from "fastify";
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import "./types.js";
-import type { RefreshTokenRepository } from "../repositories/refresh-token-repository.js";
-import type { UserRepository } from "../repositories/user-repository.js";
+import { DomainError } from "../domain/errors.js";
 import { authRoutes } from "../http/routes/auth.routes.js";
 import { healthRoutes } from "../http/routes/health.routes.js";
 import { userRoutes } from "../http/routes/users.routes.js";
+import type { RefreshTokenRepository } from "../repositories/refresh-token-repository.js";
+import type { UserRepository } from "../repositories/user-repository.js";
 import { corsOptions } from "./cors.js";
 import { settings } from "./settings.js";
 
@@ -75,7 +76,24 @@ export async function createServer(deps: ServerDependencies): Promise<FastifyIns
   await authRoutes(fastify, deps);
   await userRoutes(fastify, deps);
 
-  fastify.setErrorHandler((error, _request, reply) => {
+  const DOMAIN_ERROR_STATUS: Record<string, number> = {
+    InvalidCredentialsError: 401,
+    UnauthorizedError: 401,
+    InvalidRefreshTokenError: 401,
+    UserNotFoundError: 404,
+    EmailAlreadyInUseError: 409,
+    UsernameAlreadyTakenError: 409,
+  };
+
+  fastify.setErrorHandler((error: FastifyError, _request, reply) => {
+    if (error instanceof DomainError) {
+      const status = DOMAIN_ERROR_STATUS[error.constructor.name] ?? 422;
+      return reply.status(status).send({ error: error.message });
+    }
+    // Fastify/Zod schema validation errors carry their own statusCode (400)
+    if (error.statusCode && error.statusCode < 500) {
+      return reply.status(error.statusCode).send({ error: error.message });
+    }
     fastify.log.error(error);
     return reply.status(500).send({ error: "Internal server error" });
   });

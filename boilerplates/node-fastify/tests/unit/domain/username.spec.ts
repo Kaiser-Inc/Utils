@@ -20,7 +20,9 @@ describe("Username value object", () => {
   });
 
   it("should throw when username has invalid characters", () => {
-    expect(() => Username.create("pedro$kaiser")).toThrow("letters, numbers, underscores and hyphens");
+    expect(() => Username.create("pedro$kaiser")).toThrow(
+      "letters, numbers, underscores and hyphens",
+    );
   });
 
   it("should allow hyphens", () => {

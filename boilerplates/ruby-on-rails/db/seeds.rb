@@ -1,12 +1,21 @@
 # db/seeds.rb
-# Example seed data — customize for your project
+# Seed script — populates the database with development data.
+# Run: bin/rails db:seed  OR  make setup
 
-# Admin user
-User.find_or_create_by!(email: "admin@example.com") do |u|
-  u.username = "admin"
-  u.password = "password123"
-  u.password_confirmation = "password123"
-  u.role = "admin"
+SEED_USERS = [
+  { username: "admin", email: "admin@example.com", password: "password123", role: "admin" },
+  { username: "alice", email: "alice@example.com", password: "password123", role: "user" },
+  { username: "bob",   email: "bob@example.com",   password: "password123", role: "user" },
+].freeze
+
+SEED_USERS.each do |attrs|
+  User.find_or_create_by!(email: attrs[:email]) do |u|
+    u.username              = attrs[:username]
+    u.password              = attrs[:password]
+    u.password_confirmation = attrs[:password]
+    u.role                  = attrs[:role]
+  end
+  puts "  Seeded: #{attrs[:email]} / #{attrs[:password]} (role: #{attrs[:role]})"
 end
 
-puts "Seeded: admin@example.com / password123"
+puts "Done."

@@ -51,7 +51,7 @@ src/app/
 │   ├── controllers/
 │   │   ├── auth/          # LoginController, RegisterController, RefreshController, LogoutController
 │   │   ├── users/         # GetProfileController, UpdateProfileController, DeleteUserController
-│   │   └── health.controller.ts
+│   │   └── health.ts
 │   ├── middlewares/
 │   │   └── authenticate.ts   # JWT verification hook
 │   ├── routes/
@@ -65,7 +65,7 @@ src/app/
 ```
 
 **Padrão de controllers:**
-Cada controller é uma classe com a propriedade `handle` como arrow function (sem necessidade de `.bind()`). Repositórios injetados via constructor. `request.server` usado para acessar a instância do Fastify dentro dos handlers.
+Cada controller é uma classe com a propriedade `handle` como arrow function (sem necessidade de `.bind()`). Services são injetados via constructor (não instanciados dentro do `handle`), o que permite testar controllers em isolamento sem depender do container. `request.server` usado para acessar a instância do Fastify dentro dos handlers.
 
 **Fluxo de uma requisição:**
 ```
@@ -74,6 +74,9 @@ Request → Route Plugin → Controller.handle → Service (Use Case) → Reposi
 
 **Validação automática via ZodTypeProvider:**
 O schema Zod declarado na rota serve como source of truth — valida o body, tipa o handler e gera o OpenAPI spec automaticamente. Sem `safeParse` manual.
+
+**Error handler global:**
+O handler global mapeia `DomainError` para os status HTTP corretos (401 Unauthorized, 404 Not Found, 409 Conflict) e preserva os erros de validação do Zod como 400 Bad Request. Erros inesperados retornam 500, mas erros de domínio conhecidos nunca são engolidos como 500.
 
 ## Autenticação
 

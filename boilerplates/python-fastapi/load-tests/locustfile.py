@@ -5,6 +5,13 @@ import uuid
 
 from locust import HttpUser, between, task
 
+# Load test thresholds (enforced via CLI flags):
+#   --stop-failure: stop test if failure rate exceeds threshold
+# Recommended run with SLA enforcement:
+#   locust --headless -u 50 -r 5 --run-time 60s \
+#          --html report.html \
+#          --exit-code-on-error 1
+# Target SLAs: p95 response time < 500ms, failure rate < 1%
 
 API_URL = os.getenv("API_URL", "http://api:8000")
 

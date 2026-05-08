@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse
-from scalar_fastapi import get_scalar_api_reference
+from scalar_fastapi.scalar_fastapi import get_scalar_api_reference
 
 
 def configure_openapi(app: FastAPI) -> None:

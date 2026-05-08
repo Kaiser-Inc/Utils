@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -18,7 +18,7 @@ class InMemoryRefreshTokenRepository(RefreshTokenRepository):
         )
 
     def exists(self, token_hash: str) -> bool:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return any(
             t["token_hash"] == token_hash and t["expires_at"] > now
             for t in self._tokens

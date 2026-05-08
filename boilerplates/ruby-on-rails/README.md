@@ -85,12 +85,14 @@ Request → Controller (thin, só HTTP)
 O controller nunca chama um Interactor diretamente — sempre passa por um Organizer. Isso garante consistência e facilita adicionar passos futuros sem tocar no controller.
 
 **Tratamento de erros:**
-Erros de domínio (`Errors::UnauthorizedError`, `Errors::EmailAlreadyInUseError`…) são lançados nos Interactors e capturados via `rescue_from` no `ApplicationController`. Zero repetição de `if result.success?` nos controllers.
+Erros de domínio (`Errors::UnauthorizedError`, `Errors::EmailAlreadyInUseError`…) são lançados nos Interactors e capturados via `rescue_from` no `ApplicationController`. Zero repetição de `if result.success?` nos controllers. O `ApplicationController` também tem um catch-all `rescue_from StandardError` — erros inesperados retornam 500 sem stack trace exposto.
 
 ## Autenticação
 
 - `POST /auth/session` → `access_token` (JSON) + `refresh_token` (HTTP-only cookie, 7d)
 - `PATCH /auth/refresh` → novo `access_token` via cookie (rotation automática, hash SHA-256 no banco)
+
+> JWT payload inclui `jti` (JWT ID) para suporte futuro a revogação de tokens individuais.
 - `PATCH /auth/logout` → revoga token, limpa cookie
 - Rotas protegidas exigem `Authorization: Bearer <token>` (before_action via `Authenticatable`)
 
@@ -151,3 +153,5 @@ k6 run -e BASE_URL=http://your-host:3000 load-tests/k6/auth.js
 |--------|--------|
 | `http_req_duration` p95 | < 500 ms |
 | `http_req_failed` | < 1% |
+
+> Thresholds k6: `p(95) < 500ms`, `http_req_failed < 1%`

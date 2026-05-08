@@ -25,6 +25,7 @@ module Auth
           sub: user.id.to_s,
           role: user.role,
           type: "access",
+          jti: SecureRandom.uuid,
           exp: 15.minutes.from_now.to_i
         }
         JWT.encode(payload, Rails.application.secret_key_base, "HS256")

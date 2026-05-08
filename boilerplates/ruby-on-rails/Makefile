@@ -1,4 +1,4 @@
-.PHONY: setup dev test lint format migrate rollback console routes docs build up down load-test
+.PHONY: setup dev test lint format migrate rollback console routes docs build up down load-test audit seed
 
 setup:
 	bundle install
@@ -44,3 +44,9 @@ down:
 
 load-test:
 	docker compose -f load-tests/docker-compose.loadtest.yml run --rm k6 run /scripts/auth.js
+
+audit:
+	bundle exec bundle-audit check --update
+
+seed:
+	bin/rails db:seed

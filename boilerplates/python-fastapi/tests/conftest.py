@@ -3,14 +3,14 @@ from fastapi.testclient import TestClient
 
 from app.core.application import create_app
 from app.domain.role import Role
+from app.http.dependencies.repositories import (
+    get_refresh_token_repository,
+    get_user_repository,
+)
 from app.repositories.in_memory.in_memory_refresh_token_repository import (
     InMemoryRefreshTokenRepository,
 )
 from app.repositories.in_memory.in_memory_user_repository import InMemoryUserRepository
-from app.http.dependencies.repositories import (
-    get_user_repository,
-    get_refresh_token_repository,
-)
 
 
 @pytest.fixture

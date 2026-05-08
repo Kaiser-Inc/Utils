@@ -18,10 +18,7 @@ export class TokenService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   generateAccessToken(payload: AccessTokenPayload): string {
-    return this.fastify.jwt.sign(
-      { sub: payload.sub, role: payload.role },
-      { expiresIn: "15m" },
-    );
+    return this.fastify.jwt.sign({ sub: payload.sub, role: payload.role }, { expiresIn: "15m" });
   }
 
   generateRefreshToken(): { raw: string; hash: string; expiresAt: Date } {

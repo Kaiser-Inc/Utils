@@ -9,11 +9,9 @@ RSpec.configure do |config|
       info: {
         title: "Rails Boilerplate API",
         version: "v1",
-        description: <<~DESC
-          API de autenticação com dual-token JWT.
-          Autenticação via `Authorization: Bearer <access_token>`.
-          O refresh token é enviado automaticamente via cookie HTTP-only.
-        DESC,
+        description: "API de autenticação com dual-token JWT. " \
+                     "Autenticação via `Authorization: Bearer <access_token>`. " \
+                     "O refresh token é enviado automaticamente via cookie HTTP-only.",
         contact: {
           name: "KaiserInc",
           url: "https://github.com/KaiserInc"

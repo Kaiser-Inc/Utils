@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Node/Fastify ──────────────────────────────────────────────────────────
+  node-fastify:
+    name: Node/Fastify — lint + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: boilerplates/node-fastify
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: boilerplate_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: boilerplates/node-fastify/package-lock.json
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/boilerplate_test
+          SECRET_KEY: ci-test-secret-key-32-chars-long!!
+
+      - name: Audit
+        run: npm audit --audit-level=high
+
+  # ── Python/FastAPI ─────────────────────────────────────────────────────────
+  python-fastapi:
+    name: Python/FastAPI — lint + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: boilerplates/python-fastapi
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: boilerplate_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Lint
+        run: ruff check src tests
+
+      - name: Test
+        run: pytest --cov=src --cov-report=term-missing
+        env:
+          ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/boilerplate_test
+          SECRET_KEY: ci-test-secret-key-32-chars-long!!
+
+      - name: Audit
+        run: pip-audit -r requirements.txt
+
+  # ── Ruby on Rails ─────────────────────────────────────────────────────────
+  ruby-on-rails:
+    name: Rails — lint + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: boilerplates/ruby-on-rails
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: boilerplate_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: boilerplates/ruby-on-rails
+
+      - name: Lint
+        run: bundle exec rubocop
+
+      - name: Test
+        run: bundle exec rspec
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/boilerplate_test
+          SECRET_KEY_BASE: ci-test-secret-key-base-for-rails-ci
+          SECRET_KEY: ci-test-secret-key-32-chars-long!!
+
+      - name: Audit
+        run: bundle exec bundle-audit check --update

@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate load-test
+.PHONY: dev test lint format migrate load-test audit seed
 
 dev:
 	uvicorn main:app --reload --app-dir src
@@ -17,3 +17,9 @@ migrate:
 
 load-test:
 	docker compose -f load-tests/docker-compose.loadtest.yml up --build
+
+audit:
+	pip-audit -r requirements.txt
+
+seed:
+	python scripts/seed.py

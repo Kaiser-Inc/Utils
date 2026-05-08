@@ -10,8 +10,8 @@ API REST com autenticação dual-token, Clean Architecture + DDD e ambiente Dock
 | ORM + Migrations | SQLAlchemy 2.0 + Alembic |
 | Banco de dados | PostgreSQL |
 | Validação | Pydantic v2 |
-| JWT | python-jose (HS256) |
-| Hashing | passlib + bcrypt |
+| JWT | PyJWT (HS256) |
+| Hashing | bcrypt (direto, sem wrapper) |
 | Testes | pytest + pytest-cov |
 | Lint | ruff |
 | Telemetria | OpenTelemetry + Jaeger |
@@ -56,6 +56,12 @@ src/app/
 ```
 Request → Controller → Service (Use Case) → Repository → Response
 ```
+
+## Dependências de segurança
+
+- `bcrypt` — hashing de senhas (sem wrapper, direto)
+- `PyJWT` — geração e validação de tokens JWT (substitui python-jose)
+- Cookie `refresh_token`: `secure=True` em produção (`ENV=production`)
 
 ## Autenticação
 
@@ -121,3 +127,5 @@ docker compose -f load-tests/docker-compose.loadtest.yml down
 | Response time p95 | < 500 ms |
 | Failure rate | < 1% |
 | RPS | baseline for your hardware |
+
+> SLA targets: p95 < 500ms, failure rate < 1% — enforced via `--exit-code-on-error 1`

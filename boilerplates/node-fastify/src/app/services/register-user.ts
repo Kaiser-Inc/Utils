@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "../core/security.js";
 import { EmailAlreadyInUseError, UsernameAlreadyTakenError } from "../domain/errors.js";
-import { Role } from "../domain/role.js";
+import type { Role } from "../domain/role.js";
 import { User } from "../domain/user.js";
 import { Email } from "../domain/value-objects/email.js";
 import { Username } from "../domain/value-objects/username.js";
