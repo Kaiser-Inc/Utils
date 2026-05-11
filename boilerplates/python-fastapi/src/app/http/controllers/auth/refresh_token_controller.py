@@ -9,7 +9,6 @@ from app.http.dependencies.repositories import (
 from app.services.auth.refresh_token_service import RefreshTokenService
 from app.services.auth.token_service import TokenService
 
-
 SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7
 
 

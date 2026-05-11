@@ -12,7 +12,6 @@ from app.schemas.auth import LoginRequest
 from app.services.auth.token_service import TokenService
 from app.services.authenticate_user_service import AuthenticateUserService
 
-
 SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7
 
 
