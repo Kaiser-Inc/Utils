@@ -25,8 +25,8 @@ class RefreshTokenService:
             payload = jwt.decode(
                 refresh_token, settings.secret_key, algorithms=["HS256"]
             )
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            raise ValueError("Invalid refresh token")
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as exc:
+            raise ValueError("Invalid refresh token") from exc
 
         if payload.get("type") != "refresh":
             raise ValueError("Invalid token type")

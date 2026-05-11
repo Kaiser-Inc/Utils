@@ -16,3 +16,15 @@ ignore = []
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pylint.MAIN]
+source-roots = ["src"]
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+    "C0114",  # missing-module-docstring
+    "C0115",  # missing-class-docstring
+    "C0116",  # missing-function-docstring
+    "R0903",  # too-few-public-methods  (service/model classes — single responsibility by design)
+    "R0801",  # duplicate-code          (clean architecture generates structural duplicates)
+]

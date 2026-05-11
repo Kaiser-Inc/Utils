@@ -13,6 +13,9 @@ from app.services.auth.token_service import TokenService
 from app.services.authenticate_user_service import AuthenticateUserService
 
 
+SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7
+
+
 def login(
     payload: LoginRequest,
     response: Response,
@@ -29,12 +32,10 @@ def login(
 
     try:
         tokens = service.execute(payload.email, payload.password)
-    except ValueError:
+    except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials."
-        )
-
-    SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7
+        ) from exc
     response.set_cookie(
         key="refresh_token",
         value=tokens["refresh_token"],

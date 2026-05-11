@@ -18,14 +18,14 @@ def get_current_user(
 ) -> User:
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired."
-        )
-    except jwt.InvalidTokenError:
+        ) from exc
+    except jwt.InvalidTokenError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token."
-        )
+        ) from exc
 
     if payload.get("type") != "access":
         raise HTTPException(
