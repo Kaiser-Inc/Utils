@@ -39,7 +39,6 @@ htmlcov/
 .ruff_cache/
 
 # Relatórios de métricas (gerados localmente)
-metrics/*.json
-metrics/*.md
+metrics/
 coverage.json
 .benchmarks/
