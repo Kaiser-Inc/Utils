@@ -23,4 +23,3 @@ def delete_user(
         refresh_token_repository=refresh_token_repository,
     )
     service.execute(current_user)
-    return None

@@ -37,3 +37,8 @@ htmlcov/
 
 # Ruff cache
 .ruff_cache/
+
+# Relatórios de métricas (gerados localmente)
+metrics/
+coverage.json
+.benchmarks/

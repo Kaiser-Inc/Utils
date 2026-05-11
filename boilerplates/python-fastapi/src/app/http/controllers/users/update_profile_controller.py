@@ -21,7 +21,7 @@ def update_profile(
             user=current_user, username=payload.username, email=payload.email
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return UserResponse(
         id=user.id, username=user.username.value, email=user.email.value, role=user.role

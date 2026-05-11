@@ -7,7 +7,7 @@ from app.repositories.sql_alchemy.models.user_model import UserModel
 
 def to_domain(model: UserModel) -> User:
     return User.reconstitute(
-        id=model.id,
+        user_id=model.id,
         username=Username(model.username),
         email=Email(model.email),
         hashed_password=model.hashed_password,

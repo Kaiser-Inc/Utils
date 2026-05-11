@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name
 from uuid import UUID
 
 from sqlalchemy.orm import Session

@@ -1,0 +1,10 @@
+# Dependências para coleta de métricas acadêmicas
+# Instalar: pip install -r requirements-metrics.txt
+-r requirements.txt
+
+radon==6.0.1
+pylint==3.3.7
+xenon==0.9.3
+pytest-benchmark==5.1.0
+matplotlib==3.9.4
+openpyxl==3.1.5

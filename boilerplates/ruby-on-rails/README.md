@@ -37,14 +37,42 @@ docker compose up
 ## Comandos
 
 ```bash
-make setup    # Instalar gems + criar DB + rodar migrations
-make dev      # Iniciar servidor Rails
-make test     # Rodar RSpec
-make docs     # Gerar swagger.yaml via rswag
-make lint     # RuboCop
-make migrate  # Rodar migrations pendentes
-make console  # Rails console
+make setup      # Instalar gems + criar DB + rodar migrations + seed
+make dev        # Iniciar servidor Rails
+make test       # Rodar RSpec
+make docs       # Gerar swagger.yaml via rswag
+make lint       # RuboCop
+make migrate    # Rodar migrations pendentes
+make console    # Rails console
+make seed       # Popular banco com dados de dev
+make audit      # Checar vulnerabilidades (bundle-audit)
+make load-test  # Rodar k6 via Docker
 ```
+
+## Dados de desenvolvimento
+
+Popula o banco com 3 usuários:
+
+```bash
+make seed
+```
+
+| email | senha | role |
+|-------|-------|------|
+| admin@example.com | password123 | admin |
+| alice@example.com | password123 | user |
+| bob@example.com | password123 | user |
+
+> `make setup` já roda o seed automaticamente.
+
+## Bruno — API Collection
+
+Coleção completa de requests em `api-collection/`.
+
+1. Abra [Bruno](https://www.usebruno.com/) → **Open Collection** → selecione `boilerplates/ruby-on-rails/api-collection/`
+2. Selecione environment **local** (aponta para `http://localhost:3000`)
+3. Execute **Login** primeiro — `accessToken` salvo automaticamente
+4. Demais requests já usam o token salvo
 
 ## Arquitetura
 
@@ -123,34 +151,32 @@ OTLP_ENDPOINT=http://jaeger:4317
 
 ## Load Testing
 
-Uses [k6](https://k6.io/) for stress and load testing.
+Utiliza [k6](https://k6.io/) para testes de carga e estresse.
 
-### Run
+### Execução
 
 ```bash
-# Spin up isolated API + k6 via Docker
+# Sobe API isolada + k6 via Docker
 make load-test
 
-# Run users scenario
+# Roda cenário de usuários
 docker compose -f load-tests/docker-compose.loadtest.yml run --rm k6 run /scripts/users.js
 
-# Run against a live server
-k6 run -e BASE_URL=http://your-host:3000 load-tests/k6/auth.js
+# Roda contra servidor externo
+k6 run -e BASE_URL=http://seu-host:3000 load-tests/k6/auth.js
 ```
 
-> **Note:** Set `RAILS_MASTER_KEY` in your environment before running load tests.
+### Cenários
 
-### Scenarios
-
-| File | Scenario | VUs |
-|------|----------|-----|
+| Arquivo | Cenário | VUs |
+|---------|---------|-----|
 | `load-tests/k6/auth.js` | register → login → refresh → logout | 20 |
 | `load-tests/k6/users.js` | login → GET /users/me → PUT /users/me | 10 |
 
-### Key Metrics
+### Métricas
 
-| Metric | Target |
-|--------|--------|
+| Métrica | Meta |
+|---------|------|
 | `http_req_duration` p95 | < 500 ms |
 | `http_req_failed` | < 1% |
 

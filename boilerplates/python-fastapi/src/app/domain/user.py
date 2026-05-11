@@ -57,17 +57,17 @@ class User:
         )
 
     @classmethod
-    def reconstitute(
+    def reconstitute(  # pylint: disable=too-many-arguments
         cls,
         *,
-        id: UUID,
+        user_id: UUID,
         username: Username,
         email: Email,
         hashed_password: str,
         role: Role,
     ) -> "User":
         return cls(
-            _id=id,
+            _id=user_id,
             _username=username,
             _email=email,
             _hashed_password=hashed_password,

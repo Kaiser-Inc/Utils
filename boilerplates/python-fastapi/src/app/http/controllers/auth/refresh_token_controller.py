@@ -10,6 +10,9 @@ from app.services.auth.refresh_token_service import RefreshTokenService
 from app.services.auth.token_service import TokenService
 
 
+SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7
+
+
 def refresh(
     request: Request,
     response: Response,
@@ -30,12 +33,11 @@ def refresh(
 
     try:
         tokens = service.execute(refresh_token)
-    except ValueError:
+    except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials."
-        )
+        ) from exc
 
-    SEVEN_DAYS_IN_SECONDS = 60 * 60 * 24 * 7
     response.set_cookie(
         key="refresh_token",
         value=tokens["refresh_token"],
