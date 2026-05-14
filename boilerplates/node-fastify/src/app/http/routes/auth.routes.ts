@@ -1,6 +1,5 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { z } from "zod";
 import type { ServerDependencies } from "../../core/server.js";
 import { RegisterUserService } from "../../services/register-user.js";
 import { LoginController } from "../controllers/auth/login.js";
@@ -8,7 +7,51 @@ import { LogoutController } from "../controllers/auth/logout.js";
 import { RefreshController } from "../controllers/auth/refresh.js";
 import { RegisterController } from "../controllers/auth/register.js";
 import { authenticate } from "../middlewares/authenticate.js";
-import { AccessTokenSchema, ErrorSchema, UserSchema } from "../schemas/index.js";
+import {
+  AccessTokenSchema,
+  ErrorSchema,
+  LoginBodySchema,
+  RegisterBodySchema,
+  UserSchema,
+} from "../schemas/index.js";
+
+// ─── Route Schemas (defined at module level to keep route handlers lean) ──────
+
+const loginSchema = {
+  tags: ["Auth"],
+  summary: "Login — returns access token and sets refresh cookie",
+  security: [] as unknown[],
+  body: LoginBodySchema,
+  response: { 200: AccessTokenSchema, 401: ErrorSchema },
+};
+
+const registerSchema = {
+  tags: ["Auth"],
+  summary: "Register a new user",
+  security: [] as unknown[],
+  body: RegisterBodySchema,
+  response: { 201: UserSchema, 409: ErrorSchema, 422: ErrorSchema },
+};
+
+const refreshSchema = {
+  tags: ["Auth"],
+  summary: "Refresh access token using HTTP-only cookie",
+  description: "Reads the `refresh_token` HTTP-only cookie. Rotates the token on each call.",
+  security: [] as unknown[],
+  response: { 200: AccessTokenSchema, 401: ErrorSchema },
+};
+
+const logoutSchema = {
+  tags: ["Auth"],
+  summary: "Logout — revoke all refresh tokens",
+  security: [{ bearerAuth: [] }],
+  response: {
+    204: { type: "null", description: "Logged out successfully" },
+    401: ErrorSchema,
+  },
+};
+
+// ─── Plugin ───────────────────────────────────────────────────────────────────
 
 export async function authRoutes(
   fastify: FastifyInstance,
@@ -21,79 +64,8 @@ export async function authRoutes(
 
   const f = fastify.withTypeProvider<ZodTypeProvider>();
 
-  f.post(
-    "/auth/session",
-    {
-      schema: {
-        tags: ["Auth"],
-        summary: "Login — returns access token and sets refresh cookie",
-        security: [],
-        body: z.object({
-          email: z.string().email(),
-          password: z.string().min(1),
-        }),
-        response: {
-          200: AccessTokenSchema,
-          401: ErrorSchema,
-        },
-      },
-    },
-    login.handle,
-  );
-
-  f.post(
-    "/auth/register",
-    {
-      schema: {
-        tags: ["Auth"],
-        summary: "Register a new user",
-        security: [],
-        body: z.object({
-          username: z.string().min(3).max(50),
-          email: z.string().email(),
-          password: z.string().min(8),
-        }),
-        response: {
-          201: UserSchema,
-          409: ErrorSchema,
-          422: ErrorSchema,
-        },
-      },
-    },
-    register.handle,
-  );
-
-  f.patch(
-    "/auth/refresh",
-    {
-      schema: {
-        tags: ["Auth"],
-        summary: "Refresh access token using HTTP-only cookie",
-        security: [],
-        description: "Reads the `refresh_token` HTTP-only cookie. Rotates the token on each call.",
-        response: {
-          200: AccessTokenSchema,
-          401: ErrorSchema,
-        },
-      },
-    },
-    refresh.handle,
-  );
-
-  f.patch(
-    "/auth/logout",
-    {
-      schema: {
-        tags: ["Auth"],
-        summary: "Logout — revoke all refresh tokens",
-        security: [{ bearerAuth: [] }],
-        response: {
-          204: { type: "null", description: "Logged out successfully" },
-          401: ErrorSchema,
-        },
-      },
-      preHandler: [authenticate],
-    },
-    logout.handle,
-  );
+  f.post("/auth/session", { schema: loginSchema }, login.handle);
+  f.post("/auth/register", { schema: registerSchema }, register.handle);
+  f.patch("/auth/refresh", { schema: refreshSchema }, refresh.handle);
+  f.patch("/auth/logout", { schema: logoutSchema, preHandler: [authenticate] }, logout.handle);
 }

@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate load-test audit seed
+.PHONY: dev test lint format migrate load-test audit seed metrics
 
 dev:
 	npm run dev
@@ -23,3 +23,6 @@ audit:
 
 seed:
 	npx tsx scripts/seed.ts
+
+metrics:
+	npm run test:coverage && npm run metrics

@@ -4,3 +4,4 @@ dist/
 *.js.map
 coverage/
 .nyc_output/
+metrics/

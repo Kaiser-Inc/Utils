@@ -20,52 +20,66 @@ export interface ServerDependencies {
   refreshTokenRepo: RefreshTokenRepository;
 }
 
-export async function createServer(deps: ServerDependencies): Promise<FastifyInstance> {
-  const fastify = Fastify({
-    logger: settings.NODE_ENV !== "test",
-  });
+// ─── OpenAPI / Swagger config (module-level to keep createServer lean) ────────
 
-  // Zod type provider — valida request bodies via schemas Zod e gera JSON Schema para o OpenAPI
+const swaggerOptions = {
+  openapi: {
+    openapi: "3.0.1",
+    info: {
+      title: "Node Fastify Boilerplate API",
+      version: "1.0.0",
+      description:
+        "API de autenticação com dual-token JWT. Access token via `Authorization: Bearer`, refresh token via HTTP-only cookie.",
+    },
+    servers: [{ url: `http://localhost:${settings.PORT}`, description: "Development" }],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "Access token JWT. Expira em 15 minutos.",
+        },
+      },
+    },
+    tags: [
+      { name: "Health", description: "Status da aplicação" },
+      { name: "Auth", description: "Registro, login, refresh e logout" },
+      { name: "Users", description: "Gerenciamento do perfil autenticado" },
+    ],
+  },
+};
+
+const scalarOptions = {
+  routePrefix: "/docs",
+  configuration: {
+    title: "Node Fastify Boilerplate API",
+    theme: "purple",
+    defaultHttpClient: { targetKey: "js", clientKey: "fetch" },
+  },
+};
+
+const DOMAIN_ERROR_STATUS: Record<string, number> = {
+  InvalidCredentialsError: 401,
+  UnauthorizedError: 401,
+  InvalidRefreshTokenError: 401,
+  UserNotFoundError: 404,
+  EmailAlreadyInUseError: 409,
+  UsernameAlreadyTakenError: 409,
+};
+
+// ─── Factory ──────────────────────────────────────────────────────────────────
+
+export async function createServer(deps: ServerDependencies): Promise<FastifyInstance> {
+  const fastify = Fastify({ logger: settings.NODE_ENV !== "test" });
+
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
 
-  await fastify.register(fastifySwagger, {
-    openapi: {
-      openapi: "3.0.1",
-      info: {
-        title: "Node Fastify Boilerplate API",
-        version: "1.0.0",
-        description:
-          "API de autenticação com dual-token JWT. Access token via `Authorization: Bearer`, refresh token via HTTP-only cookie.",
-      },
-      servers: [{ url: `http://localhost:${settings.PORT}`, description: "Development" }],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            bearerFormat: "JWT",
-            description: "Access token JWT. Expira em 15 minutos.",
-          },
-        },
-      },
-      tags: [
-        { name: "Health", description: "Status da aplicação" },
-        { name: "Auth", description: "Registro, login, refresh e logout" },
-        { name: "Users", description: "Gerenciamento do perfil autenticado" },
-      ],
-    },
-  });
+  await fastify.register(fastifySwagger, swaggerOptions);
 
   if (settings.NODE_ENV !== "test") {
-    await fastify.register(ScalarApiReference, {
-      routePrefix: "/docs",
-      configuration: {
-        title: "Node Fastify Boilerplate API",
-        theme: "purple",
-        defaultHttpClient: { targetKey: "js", clientKey: "fetch" },
-      },
-    });
+    await fastify.register(ScalarApiReference, scalarOptions);
   }
 
   await fastify.register(fastifyCors, corsOptions);
@@ -76,21 +90,11 @@ export async function createServer(deps: ServerDependencies): Promise<FastifyIns
   await authRoutes(fastify, deps);
   await userRoutes(fastify, deps);
 
-  const DOMAIN_ERROR_STATUS: Record<string, number> = {
-    InvalidCredentialsError: 401,
-    UnauthorizedError: 401,
-    InvalidRefreshTokenError: 401,
-    UserNotFoundError: 404,
-    EmailAlreadyInUseError: 409,
-    UsernameAlreadyTakenError: 409,
-  };
-
   fastify.setErrorHandler((error: FastifyError, _request, reply) => {
     if (error instanceof DomainError) {
       const status = DOMAIN_ERROR_STATUS[error.constructor.name] ?? 422;
       return reply.status(status).send({ error: error.message });
     }
-    // Fastify/Zod schema validation errors carry their own statusCode (400)
     if (error.statusCode && error.statusCode < 500) {
       return reply.status(error.statusCode).send({ error: error.message });
     }

@@ -37,4 +37,18 @@ describe("GET /users/me", () => {
 
     expect(response.statusCode).toBe(401);
   });
+
+  it("should return 404 when user no longer exists", async () => {
+    const { authHeader } = await registerAndLogin(ctx.app);
+
+    ctx.userRepo.items.length = 0;
+
+    const response = await ctx.app.inject({
+      method: "GET",
+      url: "/users/me",
+      headers: { authorization: authHeader },
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
 });

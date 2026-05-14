@@ -117,7 +117,8 @@ def collect_xenon(src: str) -> dict:
 
 def collect_coverage(src_module: str) -> dict:
     """Cobertura de testes via pytest-cov."""
-    run(py("pytest", f"--cov={src_module}", "--cov-report=json", "-q", "--no-header"))
+    import re as _re
+    cov_code, stdout, _ = run(py("pytest", f"--cov={src_module}", "--cov-report=json", "-q", "--no-header"))
     coverage_file = ROOT / "coverage.json"
     if not coverage_file.exists():
         return {"error": "coverage.json não encontrado — rode pytest primeiro"}
@@ -131,12 +132,26 @@ def collect_coverage(src_module: str) -> dict:
         short = Path(fname).name
         files[short] = round(fdata.get("summary", {}).get("percent_covered", 0), 1)
 
+    # --co (collect-only) counts tests without executing them
+    _, co_out, _ = run(py("pytest", "--co", "-q"))
+    tests_total = 0
+    for line in co_out.splitlines():
+        parts = line.rsplit(": ", 1)
+        if len(parts) == 2 and parts[1].strip().isdigit():
+            tests_total += int(parts[1].strip())
+    # Use coverage run exit code to determine pass/fail
+    tests_failed = 0 if cov_code == 0 else max(1, tests_total)
+    tests_passed = tests_total - tests_failed
+
     return {
         "percent": round(totals.get("percent_covered", 0), 2),
         "covered_lines": totals.get("covered_lines", 0),
         "missing_lines": totals.get("missing_lines", 0),
         "num_statements": totals.get("num_statements", 0),
         "by_file": files,
+        "tests_passed": tests_passed,
+        "tests_failed": tests_failed,
+        "tests_total": tests_total,
     }
 
 
