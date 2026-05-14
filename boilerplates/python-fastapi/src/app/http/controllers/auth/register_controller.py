@@ -20,7 +20,9 @@ def register_user(
             role=payload.role,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
 
     return UserResponse(
         id=user.id, username=user.username.value, email=user.email.value, role=user.role

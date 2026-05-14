@@ -22,4 +22,16 @@ RSpec.describe RefreshToken, type: :model do
       end
     end
   end
+
+  describe "#expired?" do
+    it "returns false for a non-expired token" do
+      token = build(:refresh_token, expires_at: 1.hour.from_now)
+      expect(token.expired?).to be false
+    end
+
+    it "returns true for an expired token" do
+      token = build(:refresh_token, expires_at: 1.hour.ago)
+      expect(token.expired?).to be true
+    end
+  end
 end

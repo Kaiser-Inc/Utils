@@ -3,19 +3,16 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { HealthController } from "../controllers/health.js";
 import { HealthSchema } from "../schemas/index.js";
 
+const healthSchema = {
+  tags: ["Health"],
+  summary: "Health check",
+  security: [] as unknown[],
+  response: { 200: HealthSchema },
+};
+
 export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
   const health = new HealthController();
-
-  fastify.withTypeProvider<ZodTypeProvider>().get(
-    "/health",
-    {
-      schema: {
-        tags: ["Health"],
-        summary: "Health check",
-        security: [],
-        response: { 200: HealthSchema },
-      },
-    },
-    health.handle,
-  );
+  fastify
+    .withTypeProvider<ZodTypeProvider>()
+    .get("/health", { schema: healthSchema }, health.handle);
 }

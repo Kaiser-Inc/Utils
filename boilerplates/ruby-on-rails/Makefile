@@ -1,4 +1,4 @@
-.PHONY: setup dev test lint format migrate rollback console routes docs build up down load-test audit seed
+.PHONY: setup dev test lint format migrate rollback console routes docs build up down load-test audit seed metrics
 
 setup:
 	bundle install
@@ -50,3 +50,6 @@ audit:
 
 seed:
 	bin/rails db:seed
+
+metrics:
+	bundle exec rspec --no-color -f progress && bundle exec ruby scripts/metrics.rb
