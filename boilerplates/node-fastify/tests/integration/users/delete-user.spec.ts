@@ -53,4 +53,19 @@ describe("DELETE /users/me", () => {
 
     expect(response.statusCode).toBe(401);
   });
+
+  it("should return 404 when user no longer exists", async () => {
+    const { authHeader } = await registerAndLogin(ctx.app);
+
+    // Simulate external deletion (e.g. race condition or admin removal)
+    ctx.userRepo.items.length = 0;
+
+    const response = await ctx.app.inject({
+      method: "DELETE",
+      url: "/users/me",
+      headers: { authorization: authHeader },
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
 });

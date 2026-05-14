@@ -6,6 +6,11 @@ RSpec.describe "Users API", type: :request do
     JWT.encode(payload, Rails.application.secret_key_base, "HS256")
   end
 
+  def generate_expired_token(user)
+    payload = { sub: user.id.to_s, role: user.role, type: "access", exp: 1.minute.ago.to_i }
+    JWT.encode(payload, Rails.application.secret_key_base, "HS256")
+  end
+
   path "/users/me" do
     get "Get current user profile" do
       tags     "Users"
@@ -38,6 +43,41 @@ RSpec.describe "Users API", type: :request do
         let(:Authorization) { nil }
 
         run_test!
+      end
+
+      response "401", "expired token" do
+        schema "$ref" => "#/components/schemas/ErrorResponse"
+
+        let!(:user)          { create(:user) }
+        let!(:Authorization) { "Bearer #{generate_expired_token(user)}" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body)).to have_key("error")
+        end
+      end
+
+      response "401", "malformed token" do
+        schema "$ref" => "#/components/schemas/ErrorResponse"
+
+        let!(:user)          { create(:user) }
+        let!(:Authorization) { "Bearer not.a.valid.jwt" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body)).to have_key("error")
+        end
+      end
+
+      response "401", "user deleted after token issued" do
+        schema "$ref" => "#/components/schemas/ErrorResponse"
+
+        let!(:user)          { create(:user) }
+        let!(:Authorization) { "Bearer #{generate_access_token(user)}" }
+
+        before { user.destroy! }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body)).to have_key("error")
+        end
       end
     end
 

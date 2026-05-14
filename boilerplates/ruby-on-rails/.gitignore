@@ -32,6 +32,9 @@
 .rspec_status
 /coverage
 
+# Metrics
+/metrics
+
 # Swagger — gerado via `make docs`, não versionado (exceto o .keep)
 /swagger/v1/swagger.yaml
 

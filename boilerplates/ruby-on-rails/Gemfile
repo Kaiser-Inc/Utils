@@ -29,10 +29,13 @@ group :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "shoulda-matchers"
+  gem "simplecov", require: false
+  gem "simplecov_json_formatter", require: false
 end
 
 group :development do
   gem "rubocop-rails-omakase", require: false
   gem "brakeman", require: false
   gem "bundler-audit", require: false
+  gem "flog", require: false
 end

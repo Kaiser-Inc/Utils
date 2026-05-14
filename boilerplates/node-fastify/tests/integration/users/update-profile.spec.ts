@@ -62,6 +62,40 @@ describe("PUT /users/me", () => {
     expect(response.statusCode).toBe(409);
   });
 
+  it("should return 409 when username is taken by another user", async () => {
+    const { authHeader } = await registerAndLogin(ctx.app);
+
+    await ctx.app.inject({
+      method: "POST",
+      url: "/auth/register",
+      payload: { username: "other", email: "other@example.com", password: "password123" },
+    });
+
+    const response = await ctx.app.inject({
+      method: "PUT",
+      url: "/users/me",
+      headers: { authorization: authHeader },
+      payload: { username: "other" },
+    });
+
+    expect(response.statusCode).toBe(409);
+  });
+
+  it("should return 404 when user no longer exists", async () => {
+    const { authHeader } = await registerAndLogin(ctx.app);
+
+    ctx.userRepo.items.length = 0;
+
+    const response = await ctx.app.inject({
+      method: "PUT",
+      url: "/users/me",
+      headers: { authorization: authHeader },
+      payload: { username: "newname" },
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+
   it("should return 401 when not authenticated", async () => {
     const response = await ctx.app.inject({
       method: "PUT",

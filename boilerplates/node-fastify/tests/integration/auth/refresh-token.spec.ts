@@ -60,4 +60,17 @@ describe("PATCH /auth/refresh", () => {
 
     expect(response.statusCode).toBe(401);
   });
+
+  it("deleteExpired() should remove expired tokens from the store", async () => {
+    await registerAndLogin(ctx.app);
+
+    const pastDate = new Date(Date.now() - 1000);
+    ctx.refreshTokenRepo.items.forEach((t) => {
+      (t as { expiresAt: Date }).expiresAt = pastDate;
+    });
+
+    expect(ctx.refreshTokenRepo.items.length).toBeGreaterThan(0);
+    await ctx.refreshTokenRepo.deleteExpired();
+    expect(ctx.refreshTokenRepo.items).toHaveLength(0);
+  });
 });
