@@ -1,0 +1,10 @@
+appId: com.kaiserinc.expomobile
+---
+- launchApp
+- assertVisible: "Entrar"
+- tapOn: "Email"
+- inputText: "test@example.com"
+- tapOn: "Senha"
+- inputText: "password123"
+- tapOn: "Entrar"
+- assertVisible: "Início"

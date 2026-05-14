@@ -31,3 +31,19 @@ graphify-out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Next.js
+boilerplates/next-saas/node_modules/
+boilerplates/next-saas/.next/
+boilerplates/next-saas/coverage/
+boilerplates/next-saas/metrics/
+boilerplates/next-saas/playwright-report/
+boilerplates/next-saas/test-results/
+boilerplates/next-saas/*.tsbuildinfo
+
+# Expo Mobile
+boilerplates/expo-mobile/node_modules/
+boilerplates/expo-mobile/.expo/
+boilerplates/expo-mobile/coverage/
+boilerplates/expo-mobile/metrics/
+boilerplates/expo-mobile/dist/

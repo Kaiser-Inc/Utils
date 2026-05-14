@@ -1,0 +1,27 @@
+# Next.js
+.next/
+out/
+build/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+
+# Metrics
+metrics/
+
+# OS
+.DS_Store
+*.log
+
+# TypeScript
+*.tsbuildinfo
