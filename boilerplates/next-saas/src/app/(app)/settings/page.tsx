@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, Button, Input } from "@/components/ui";
 import { useUser } from "@/hooks/use-user";
 import { ApiError } from "@/lib/api/client";
 import { updateProfile } from "@/lib/api/endpoints/users";
@@ -59,51 +60,31 @@ export default function SettingsPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1">
-          <label htmlFor="username" className="text-sm font-medium">
-            Usuário
-          </label>
-          <input
-            id="username"
-            type="text"
-            placeholder={user?.username ?? ""}
-            {...register("username")}
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          {errors.username && <p className="text-xs text-red-500">{errors.username.message}</p>}
-        </div>
+        <Input
+          id="username"
+          type="text"
+          label="Usuário"
+          placeholder={user?.username ?? ""}
+          error={errors.username?.message}
+          {...register("username")}
+        />
 
-        <div className="space-y-1">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            placeholder={user?.email ?? ""}
-            {...register("email")}
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
-        </div>
+        <Input
+          id="email"
+          type="email"
+          label="Email"
+          placeholder={user?.email ?? ""}
+          error={errors.email?.message}
+          {...register("email")}
+        />
 
         {message && (
-          <p
-            className={`rounded-md px-3 py-2 text-sm ${
-              message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"
-            }`}
-          >
-            {message.text}
-          </p>
+          <Alert variant={message.type === "success" ? "success" : "danger"}>{message.text}</Alert>
         )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
+        <Button type="submit" loading={isSubmitting}>
           {isSubmitting ? "Salvando…" : "Salvar alterações"}
-        </button>
+        </Button>
       </form>
     </div>
   );

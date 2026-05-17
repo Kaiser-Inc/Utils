@@ -6,7 +6,7 @@ import { HealthSchema } from "../schemas/index.js";
 const healthSchema = {
   tags: ["Health"],
   summary: "Health check",
-  security: [] as unknown[],
+  security: [] as { [securityLabel: string]: string[] }[],
   response: { 200: HealthSchema },
 };
 

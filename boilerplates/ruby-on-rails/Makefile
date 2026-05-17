@@ -52,4 +52,5 @@ seed:
 	bin/rails db:seed
 
 metrics:
-	bundle exec rspec --no-color -f progress && bundle exec ruby scripts/metrics.rb
+	bundle exec rspec --no-color -f progress || true
+	bundle exec ruby scripts/metrics.rb

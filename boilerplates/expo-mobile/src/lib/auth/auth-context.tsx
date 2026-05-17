@@ -50,8 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (accessToken) {
       try {
         await logoutApi(accessToken);
-      } catch {
-      }
+      } catch {}
     }
     await removeToken();
     setAccessToken(null);

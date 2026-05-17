@@ -1,34 +1,34 @@
 .PHONY: start android ios test test-coverage lint format typecheck audit metrics e2e
 
 start:
-	npx expo start
+	pnpm exec expo start
 
 android:
-	npx expo start --android
+	pnpm exec expo start --android
 
 ios:
-	npx expo start --ios
+	pnpm exec expo start --ios
 
 test:
-	npx jest
+	pnpm test
 
 test-coverage:
-	npx jest --coverage
+	pnpm test:coverage
 
 lint:
-	npx biome check src/
+	pnpm exec biome check src/
 
 format:
-	npx biome format --write src/
+	pnpm exec biome format --write src/
 
 typecheck:
-	npx tsc --noEmit
+	pnpm exec tsc --noEmit
 
 audit:
-	npm audit --audit-level=critical
+	pnpm audit --audit-level=critical
 
 metrics:
-	npx jest --coverage --coverageReporters=json 2>/dev/null; npx tsx scripts/metrics.ts
+	pnpm exec jest --coverage --coverageReporters=json 2>/dev/null; pnpm exec tsx scripts/metrics.ts
 
 e2e:
 	maestro test tests/e2e/flows/

@@ -1,34 +1,34 @@
 .PHONY: dev build start test test-coverage e2e lint format typecheck audit metrics
 
 dev:
-	npm run dev
+	pnpm dev
 
 build:
-	npm run build
+	pnpm build
 
 start:
-	npm run start
+	pnpm start
 
 test:
-	npm run test
+	pnpm test
 
 test-coverage:
-	npm run test:coverage
+	pnpm test:coverage
 
 e2e:
-	npm run e2e
+	pnpm e2e
 
 lint:
-	npm run lint
+	pnpm lint
 
 format:
-	npm run format
+	pnpm format
 
 typecheck:
-	npm run typecheck
+	pnpm typecheck
 
 audit:
-	npm audit --audit-level=high
+	pnpm audit --audit-level=high
 
 metrics:
-	npm run test:coverage && npm run metrics
+	pnpm test:coverage && pnpm metrics

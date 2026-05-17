@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, Button, Input } from "@/components/ui";
 import { ApiError } from "@/lib/api/client";
 import { registerUser } from "@/lib/api/endpoints/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,11 +33,7 @@ export default function RegisterPage() {
     setError(null);
     try {
       await registerUser(data);
-      await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
+      await signIn("credentials", { email: data.email, password: data.password, redirect: false });
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
@@ -48,42 +45,47 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="w-full max-w-sm space-y-6 rounded-xl border bg-background p-8 shadow-sm">
+    <div className="w-full max-w-sm space-y-6 rounded-xl border bg-card p-8 shadow-sm">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold">Criar conta</h1>
         <p className="text-sm text-muted-foreground">Junte-se ao KaiserInc</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {(["username", "email", "password"] as const).map((field) => (
-          <div key={field} className="space-y-1">
-            <label htmlFor={field} className="text-sm font-medium capitalize">
-              {field === "username" ? "Usuário" : field === "email" ? "Email" : "Senha"}
-            </label>
-            <input
-              id={field}
-              type={field === "password" ? "password" : field === "email" ? "email" : "text"}
-              {...register(field)}
-              className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            {errors[field] && <p className="text-xs text-red-500">{errors[field]?.message}</p>}
-          </div>
-        ))}
+        <Input
+          id="username"
+          type="text"
+          label="Usuário"
+          error={errors.username?.message}
+          {...register("username")}
+        />
 
-        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+        <Input
+          id="email"
+          type="email"
+          label="Email"
+          error={errors.email?.message}
+          {...register("email")}
+        />
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
+        <Input
+          id="password"
+          type="password"
+          label="Senha"
+          error={errors.password?.message}
+          {...register("password")}
+        />
+
+        {error && <Alert variant="danger">{error}</Alert>}
+
+        <Button type="submit" loading={isSubmitting} className="w-full">
           {isSubmitting ? "Criando…" : "Criar conta"}
-        </button>
+        </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
         Já tem conta?{" "}
-        <Link href="/login" className="font-medium text-primary hover:underline">
+        <Link href="/login" className="font-medium text-brand hover:underline">
           Entrar
         </Link>
       </p>

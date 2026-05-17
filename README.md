@@ -32,7 +32,10 @@ Todos implementam:
 - **Load testing** tooling (Locust para Python, k6 para Node/Rails)
 
 Frontend boilerplates (`next-saas` e `expo-mobile`) implementam:
+- **Design System KaiserInc** — paleta roxa unificada, Roboto, tokens CSS, componentes com Composition Pattern (CVA + Radix)
 - **Autenticação** via JWT do backend — agnósticos de stack (funciona com qualquer dos 3 backends)
+- **Showcase de componentes** — página/tela dedicada com todos os primitivos e composições
+- **pnpm** como package manager
 - **Mesmas métricas de qualidade** — CC/MI/Halstead via `scripts/metrics.ts`, lint, cobertura, audit
 - **Testes** unitários e E2E (Playwright para web, Maestro para mobile)
 
@@ -74,8 +77,8 @@ docker compose up
 cp -r boilerplates/next-saas/ ~/KaiserInc/novo-projeto
 cd ~/KaiserInc/novo-projeto
 cp .env.example .env
-npm install
-npm run dev
+pnpm install
+pnpm dev
 # App em http://localhost:4000 | Requer backend em BACKEND_URL
 ```
 
@@ -84,8 +87,8 @@ npm run dev
 cp -r boilerplates/expo-mobile/ ~/KaiserInc/novo-projeto
 cd ~/KaiserInc/novo-projeto
 cp .env.example .env
-npm install --legacy-peer-deps
-npx expo start
+pnpm install
+pnpm start
 # iOS: pressione i | Android: pressione a
 ```
 
@@ -154,4 +157,5 @@ make audit    # escaneia CVEs em dependências
 make lint     # verifica style/type errors
 make test     # roda suite completa de testes
 make load-test # executa k6 / Locust
+make metrics  # coleta CC/MI/Halstead/cobertura/segurança e gera relatório
 ```

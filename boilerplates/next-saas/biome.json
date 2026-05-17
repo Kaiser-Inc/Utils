@@ -42,7 +42,8 @@
       ".next",
       "coverage",
       "metrics",
-      "public"
+      "public",
+      "src/lib/kaiserinc-safelist.ts"
     ]
   }
 }

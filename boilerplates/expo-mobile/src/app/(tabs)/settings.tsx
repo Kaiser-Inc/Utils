@@ -1,4 +1,4 @@
-import { ScreenHeader } from "@/components/shared/screen-header";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/hooks/use-user";
@@ -7,7 +7,7 @@ import { updateProfile } from "@/lib/api/endpoints/users";
 import { useAuth } from "@/lib/auth/auth-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, Linking, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -54,8 +54,21 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView className="flex-1 px-6 py-4">
-        <ScreenHeader title="Configurações" subtitle="Atualize seu perfil" />
-        <View className="gap-4">
+        {/* Avatar + info do usuário */}
+        <View className="mb-6 items-center py-4">
+          <Avatar name={user?.username ?? "U"} size="lg" />
+          <Text className="mt-3 text-base font-semibold text-foreground">
+            {user?.username ?? "Usuário"}
+          </Text>
+          <Text className="mt-0.5 text-sm text-muted-foreground">{user?.email ?? ""}</Text>
+        </View>
+
+        <View className="mb-2">
+          <Text className="text-xl font-bold text-foreground">Configurações</Text>
+          <Text className="mt-1 text-sm text-muted-foreground">Atualize seu perfil</Text>
+        </View>
+
+        <View className="mt-4 gap-4">
           <Controller
             control={control}
             name="username"
@@ -99,6 +112,19 @@ export default function SettingsScreen() {
           >
             Sair
           </Button>
+        </View>
+
+        {/* Crédito */}
+        <View className="mt-10 items-center pb-4">
+          <Text className="text-xs text-muted-foreground">
+            Feito por{" "}
+            <Text
+              className="text-[#8257e6]"
+              onPress={() => Linking.openURL("https://github.com/pHenrymelo")}
+            >
+              @pHenrymelo
+            </Text>
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

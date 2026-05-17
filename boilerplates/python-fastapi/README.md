@@ -61,9 +61,12 @@ make metrics-install
 make metrics
 ```
 
-Gera dois arquivos em `metrics/`:
+Gera arquivos em `metrics/`:
 - `report_YYYY-MM-DD_HHMMSS.json` — dados brutos + sumário estruturado
 - `report_YYYY-MM-DD_HHMMSS.md` — relatório legível para inclusão em documentos
+- `report_YYYY-MM-DD_HHMMSS.xlsx` — planilha multi-aba para análise com IA
+- `report_YYYY-MM-DD_HHMMSS.html` — relatório visual standalone (abre no browser)
+- `report_YYYY-MM-DD_HHMMSS_*.png` — gráficos individuais (CC, MI, cobertura, pylint)
 
 ### Métricas coletadas
 
@@ -73,8 +76,10 @@ Gera dois arquivos em `metrics/`:
 | `radon mi` | Índice de manutenibilidade (0–100) | Oman & Hagemeister, 1992 |
 | `radon hal` | Halstead (volume, esforço, bugs estimados) | Halstead, 1977 |
 | `pylint` | Score de qualidade (0–10) + issues por categoria | — |
+| `ruff` | Linting moderno — issues por código de regra | — |
 | `xenon` | Enforcement de thresholds de complexidade | — |
 | `pytest-cov` | Cobertura de testes (%) | — |
+| `pip-audit` | Vulnerabilidades em dependências (CVEs) | — |
 
 ### Interpretação
 
@@ -170,8 +175,8 @@ Request → Controller → Service (Use Case) → Repository → Response
 Copie `.env.example` e ajuste:
 
 ```env
-DATABASE_URL=postgresql://docker:docker@db:5432/boilerplate
-SECRET_KEY=troque-por-um-secret-forte
+DATABASE_URL=postgresql://postgres:postgres@db:5432/boilerplate
+SECRET_KEY=troque-por-um-secret-forte-32chars
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 OTLP_ENDPOINT=http://jaeger:4317

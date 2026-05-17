@@ -24,7 +24,7 @@ export interface ServerDependencies {
 
 const swaggerOptions = {
   openapi: {
-    openapi: "3.0.1",
+    openapi: "3.0.1" as const,
     info: {
       title: "Node Fastify Boilerplate API",
       version: "1.0.0",
@@ -35,8 +35,8 @@ const swaggerOptions = {
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: "http",
-          scheme: "bearer",
+          type: "http" as const,
+          scheme: "bearer" as const,
           bearerFormat: "JWT",
           description: "Access token JWT. Expira em 15 minutos.",
         },
@@ -57,7 +57,7 @@ const scalarOptions = {
     theme: "purple",
     defaultHttpClient: { targetKey: "js", clientKey: "fetch" },
   },
-};
+} as const;
 
 const DOMAIN_ERROR_STATUS: Record<string, number> = {
   InvalidCredentialsError: 401,
