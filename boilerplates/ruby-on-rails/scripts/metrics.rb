@@ -59,11 +59,11 @@ def collect_flog
 
       file_key = if location
                    location.sub(/:(\d+)$/, "").strip
-                 else
+      else
                    # Infer file from class name heuristics
                    class_name = method.split("#").first.split(".").last
                    guessed_file(class_name)
-                 end
+      end
 
       methods << { name: method, score: score, file: file_key }
       by_file[file_key] << score
@@ -91,14 +91,29 @@ rescue StandardError => e
 end
 
 def guessed_file(class_name)
-  snake = class_name.gsub(/(.)([A-Z][a-z]+)/, '\1_\2')
-                    .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-                    .downcase
-  # Try common Rails paths
-  ["app/controllers/#{snake}_controller.rb",
-   "app/models/#{snake}.rb",
-   "app/services/#{snake}.rb",
-   "lib/#{snake}.rb"].first || "unknown"
+  # Strip well-known Rails suffixes before snake-casing to avoid double-suffix
+  # e.g. "ApplicationController" → "Application" → "application_controller.rb"
+  base = class_name
+           .sub(/Controller$/, "")
+           .sub(/Service$/, "")
+           .sub(/Model$/, "")
+           .sub(/Concern$/, "")
+  snake = base.gsub(/(.)([A-Z][a-z]+)/, '\1_\2')
+              .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+              .downcase
+  candidates = case class_name
+  when /Controller$/ then [ "app/controllers/#{snake}_controller.rb",
+                                        "app/controllers/concerns/#{snake}.rb" ]
+  when /Service$/    then [ "app/services/#{snake}_service.rb",
+                                        "app/organizers/#{snake}_service.rb" ]
+  else                    [ "app/models/#{snake}.rb",
+                                        "app/services/#{snake}.rb",
+                                        "lib/#{snake}.rb" ]
+  end
+  # Return first path that actually exists, else best guess
+  candidates.find { |f| File.exist?(File.join(ROOT, f)) } ||
+    candidates.first ||
+    "unknown"
 end
 
 def empty_complexity
@@ -212,7 +227,7 @@ def collect_halstead_ripper
 
     vocab  = n1 + n2
     length = n1_total + n2_total
-    volume = vocab > 0 ? length * Math.log2([vocab, 1].max) : 0.0
+    volume = vocab > 0 ? length * Math.log2([ vocab, 1 ].max) : 0.0
     difficulty = n2 > 0 ? (n1.to_f / 2) * (n2_total.to_f / n2) : 0.0
     effort = difficulty * volume
     estimated_bugs = volume / 3000.0
@@ -259,8 +274,8 @@ def compute_maintainability(cc_per_file, hal_volume_per_file)
     vol   = hal_volume_per_file[f] || 0.0
     loc   = loc_per_file[f]    || 10
 
-    raw = 171 - 5.2 * Math.log([vol, 1].max) - 0.23 * cc - 16.2 * Math.log([loc, 1].max)
-    mi  = [[raw * 100.0 / 171.0, 0].max, 100].min.round(2)
+    raw = 171 - 5.2 * Math.log([ vol, 1 ].max) - 0.23 * cc - 16.2 * Math.log([ loc, 1 ].max)
+    mi  = [ [ raw * 100.0 / 171.0, 0 ].max, 100 ].min.round(2)
 
     per_file[f] = mi
     all_mi << mi
@@ -402,13 +417,13 @@ def collect_lint
   total_files = files_data.size
   # Score 0–10: similar to pylint scoring
   offense_rate = total_files.positive? ? total_offenses.to_f / total_files : 0
-  score = [0, 10 - offense_rate].max.round(2)
+  score = [ 0, 10 - offense_rate ].max.round(2)
 
   summary_data = parsed["summary"] || {}
   inspected    = summary_data["inspected_file_count"] || total_files
 
   {
-    pylint: {
+    lint: {
       summary: {
         total_issues: total_offenses,
         by_type:      by_type.transform_values(&:to_i),
@@ -419,7 +434,7 @@ def collect_lint
   }
 rescue StandardError => e
   {
-    pylint: {
+    lint: {
       summary: {
         total_issues: 0,
         by_type:      {},
@@ -463,13 +478,13 @@ def collect_security
   output_line = parts.empty? ? "Brakeman: clean, bundler-audit: clean" : parts.join(", ")
 
   {
-    xenon: {
+    security: {
       passed:     passed,
       output:     output_line,
       thresholds: {
         max_absolute: "0 brakeman warnings",
         max_modules:  "0 bundler-audit vulnerabilities",
-        max_average:  "brakeman + bundler-audit"
+        max_average:  "—"
       }
     }
   }
@@ -516,8 +531,8 @@ def generate_markdown(report)
   mi   = report[:maintainability_index][:summary]
   hal  = report[:halstead][:summary]
   cov  = report[:test_coverage]
-  lint = report[:pylint][:summary]
-  sec  = report[:xenon]
+  lint = report[:lint][:summary]
+  sec  = report[:security]
 
   lines = []
   lines << "# Relatório de Métricas — #{report[:project]}"
@@ -670,13 +685,13 @@ def main
   cc_sum  = report[:cyclomatic_complexity][:summary]
   mi_sum  = report[:maintainability_index][:summary]
   cov_sum = report[:test_coverage]
-  sec_sum = report[:xenon]
+  sec_sum = report[:security]
 
   puts "\n📋 Resumo:"
   puts "   CC avg:      #{cc_sum[:average]} (#{cc_sum[:grade]})"
   puts "   MI avg:      #{mi_sum[:average]} (#{mi_sum[:grade]})"
   puts "   Cobertura:   #{cov_sum[:percent]}%"
-  puts "   Lint score:  #{report[:pylint][:summary][:score]}/10"
+  puts "   Lint score:  #{report[:lint][:summary][:score]}/10"
   puts "   Segurança:   #{sec_sum[:passed] ? "✅" : "❌"} #{sec_sum[:output]}"
 end
 

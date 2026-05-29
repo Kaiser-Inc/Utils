@@ -169,6 +169,20 @@ CORS_ORIGIN=http://localhost:4200
 OTLP_ENDPOINT=http://jaeger:4317
 ```
 
+## Gotchas / Convenções
+
+- **Dois secrets distintos:** `SECRET_KEY` (env) assina/valida o **JWT** —
+  `ENV.fetch("SECRET_KEY")` em `authenticatable.rb` e nos interactors
+  `generate_tokens_service.rb` / `rotate_refresh_token_service.rb`. **Nunca** use
+  `Rails.application.secret_key_base` para JWT. `SECRET_KEY_BASE` é só para a sessão Rails.
+- **`decode_jwt` falha de forma explícita:** em `JWT::DecodeError` relança
+  `Errors::InvalidTokenError` (e `JWT::ExpiredSignature` → `Errors::TokenExpiredError`) —
+  não retorna `nil` silenciosamente, evitando mensagens enganosas downstream.
+- **`docker-compose.yml`** passa `SECRET_KEY` para o container (além de `SECRET_KEY_BASE`).
+- **Sem Devise:** auth é JWT custom com gem `jwt` + `has_secure_password`.
+- **`.env`** nunca commitado — copie de `.env.example`. `coverage/` é gerado por teste e
+  fica fora do git.
+
 ## Load Testing
 
 Utiliza [k6](https://k6.io/) para testes de carga e estresse.

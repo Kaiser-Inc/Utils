@@ -31,6 +31,8 @@ services:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/boilerplate_development
       RAILS_ENV: development
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-smoketest-secret-key-base-min-64-chars-change-in-production-ok}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
       OTLP_ENDPOINT: http://jaeger:4317
     depends_on:

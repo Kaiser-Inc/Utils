@@ -534,7 +534,7 @@ function collectLint() {
   const score = Math.max(0, 10 - (errors * 2 + warnings * 0.5) / Math.max(1, files));
 
   return {
-    pylint: {
+    lint: {
       summary: {
         total_issues: totalIssues,
         by_type: byType,
@@ -573,7 +573,7 @@ function collectAudit() {
     .join(", ");
 
   return {
-    xenon: {
+    security: {
       passed,
       output: summary
         ? `npm audit: ${summary} vulnerabilities`
@@ -581,7 +581,7 @@ function collectAudit() {
       thresholds: {
         max_absolute: "0 high/critical",
         max_modules: "0 high/critical",
-        max_average: "npm audit",
+        max_average: "—",
       },
     },
   };
@@ -614,8 +614,8 @@ function generateMarkdown(report: Record<string, unknown>): string {
   const mi = (report.maintainability_index as { summary: Record<string, unknown> }).summary;
   const hal = (report.halstead as { summary: Record<string, unknown> }).summary;
   const cov = report.test_coverage as Record<string, unknown>;
-  const lint = (report.pylint as { summary: Record<string, unknown> }).summary;
-  const sec = report.xenon as Record<string, unknown>;
+  const lint = (report.lint as { summary: Record<string, unknown> }).summary;
+  const sec = report.security as Record<string, unknown>;
 
   const lines = [
     `# Relatório de Métricas — ${report.project}`,
@@ -749,7 +749,7 @@ function main() {
 
   const cc = report.cyclomatic_complexity.summary;
   const cov = report.test_coverage;
-  const sec = report.xenon;
+  const sec = report.security;
 
   console.log(`\n📋 Resumo:`);
   const covTyped = cov as { percent: number; reported_coverage?: number; real_coverage?: number };
@@ -757,7 +757,7 @@ function main() {
   console.log(`   MI avg:           ${report.maintainability_index.summary.average}`);
   console.log(`   Cobertura:        ${covTyped.reported_coverage ?? covTyped.percent}% (reportada)`);
   console.log(`   Cobertura real:   ${covTyped.real_coverage ?? "N/A"}% (com infra excluída)`);
-  console.log(`   Lint score:       ${report.pylint.summary.score}/10`);
+  console.log(`   Lint score:       ${report.lint.summary.score}/10`);
   console.log(`   Segurança:        ${sec.passed ? "✅" : "❌"} ${sec.output}`);
 }
 

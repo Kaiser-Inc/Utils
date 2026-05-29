@@ -1,44 +1,44 @@
-# Load Tests
+# Testes de Carga
 
-k6 load testing for the Node/Fastify boilerplate.
+Testes de carga com k6 para o boilerplate Node/Fastify.
 
-## Scenarios
+## Cenários
 
-| Script | VUs | Duration |
-|--------|-----|----------|
+| Script | VUs | Duração |
+|--------|-----|---------|
 | `auth.js` | 0→20→0 | ~100s |
 | `users.js` | 0→10→0 | ~90s |
 
-## Running
+## Executando
 
-### Auth scenario (default)
+### Cenário de autenticação (padrão)
 
 ```bash
 make load-test
 ```
 
-### Users scenario
+### Cenário de usuários
 
 ```bash
 docker compose -f load-tests/docker-compose.loadtest.yml run k6 run /scripts/users.js
 ```
 
-### Against a live server
+### Contra um servidor externo
 
 ```bash
-k6 run -e BASE_URL=http://your-host:3000 load-tests/k6/auth.js
+k6 run -e BASE_URL=http://seu-host:3000 load-tests/k6/auth.js
 ```
 
-## Key metrics to watch
+## Métricas principais
 
-| Metric | Target |
-|--------|--------|
+| Métrica | Alvo |
+|---------|------|
 | `http_req_duration` (p95) | < 500ms |
 | `http_req_failed` | < 1% |
 | `auth_flow_success` | > 99% |
-| `iterations` | steady throughput |
+| `iterations` | throughput estável |
 
-## Teardown
+## Encerramento
 
 ```bash
 docker compose -f load-tests/docker-compose.loadtest.yml down

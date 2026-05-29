@@ -11,6 +11,9 @@ class Settings(BaseSettings):
 
     secret_key: str
 
+    cors_origin: str = "http://localhost:4200"
+    environment: str = "development"
+
     @property
     def database_url(self) -> str:
         return (

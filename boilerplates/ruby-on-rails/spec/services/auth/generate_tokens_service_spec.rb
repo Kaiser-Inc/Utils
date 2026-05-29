@@ -21,7 +21,7 @@ RSpec.describe Auth::Interactors::GenerateTokensService do
 
     it "encodes user id and role in access token" do
       result = described_class.call(user: user)
-      decoded = JWT.decode(result.access_token, Rails.application.secret_key_base, true, algorithm: "HS256")[0]
+      decoded = JWT.decode(result.access_token, ENV.fetch("SECRET_KEY"), true, algorithm: "HS256")[0]
       expect(decoded["sub"]).to eq(user.id.to_s)
       expect(decoded["role"]).to eq(user.role)
       expect(decoded["type"]).to eq("access")

@@ -180,7 +180,27 @@ SECRET_KEY=troque-por-um-secret-forte-32chars
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 OTLP_ENDPOINT=http://jaeger:4317
+ENVIRONMENT=development
+CORS_ORIGIN=http://localhost:4200
 ```
+
+> `CORS_ORIGIN` aceita lista separada por vírgula. `ENVIRONMENT=production` desliga o
+> echo SQL e ativa `secure=True` no cookie de refresh.
+
+## Gotchas / Convenções
+
+- **CORS é dirigido por ambiente** (`src/app/core/cors.py`): origens lidas de
+  `settings.cors_origin` (nunca hardcoded), métodos e headers restritos
+  (`GET/POST/PUT/PATCH/DELETE/OPTIONS` · `Authorization/Content-Type/X-Request-ID`) —
+  não usa `["*"]`.
+- **Echo SQL condicional** (`src/app/core/database.py`): `echo=settings.environment ==
+  "development"` — evita vazar PII nos logs de produção.
+- **OpenAPI** (`src/app/core/openapi.py`): `PUBLIC_PATHS` (ex.: `/health`, `/auth/*`,
+  `/docs`) não recebem `BearerAuth` no schema — só rotas protegidas exigem token no Swagger.
+- **Entrypoint**: `entrypoint.sh` roda `uvicorn main:app --host 0.0.0.0 --port 8000
+  --app-dir src` (o pacote app vive em `src/`).
+- **`.env`** nunca commitado — copie de `.env.example`. `coverage.json`/`htmlcov/` são
+  gerados por teste e ficam fora do git (PNGs versionados em `metrics/` são intencionais).
 
 ## Load Testing
 
