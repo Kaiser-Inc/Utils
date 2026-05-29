@@ -212,3 +212,19 @@ AUTH_URL=http://localhost:4000
 | Cobertura | ≥ 80% |
 | Lint | 0 erros (Biome) |
 | Segurança | 0 vulnerabilidades (`pnpm audit`) |
+
+## Gotchas / Convenções
+
+- **Package manager canônico: pnpm.** Lockfile único `pnpm-lock.yaml` — nunca commitar
+  `package-lock.json` nem `yarn.lock`.
+- **`next-auth` pinado em `5.0.0-beta.28`** (sem caret `^`): é beta, então versão fixa
+  evita quebras silenciosas em minor. Bumps passam por aprovação manual (`renovate.json`
+  → `dependencyDashboardApproval`).
+- **`@tanstack/react-query-devtools` em `devDependencies`**, não em `dependencies` —
+  importado via `next/dynamic` **somente em desenvolvimento** (`providers.tsx`), então
+  não entra no bundle de produção. Validar: `grep -r react-query-devtools .next/static`
+  → vazio.
+- **`.env.local`** (não `.env`) é o arquivo de ambiente do Next.js — nunca commitado.
+- Vulnerabilidades transitivas resolvidas via `pnpm.overrides` em `package.json`.
+- Testes E2E (Playwright) em `tests/e2e/` — rode `pnpm exec playwright install chromium`
+  antes do primeiro `pnpm e2e`.

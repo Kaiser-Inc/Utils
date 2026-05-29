@@ -33,6 +33,8 @@ export default defineConfig({
         "src/hooks/use-user.ts",
         // Zustand store — testado via integração
         "src/stores/ui-store.ts",
+        // Auto-generated Tailwind safelist — sem lógica testável
+        "src/lib/kaiserinc-safelist.ts",
       ],
       thresholds: {
         statements: 80,
