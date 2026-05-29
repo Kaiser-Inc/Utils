@@ -1,22 +1,22 @@
-# Load Tests
+# Testes de Carga
 
-Locust-based load testing suite for the FastAPI boilerplate.
+Suite de testes de carga com Locust para o boilerplate FastAPI.
 
-## Running
+## Executando
 
-### Full stack (recommended)
+### Stack completa (recomendado)
 
 ```bash
-# From the boilerplate root:
+# A partir da raiz do boilerplate:
 make load-test
 
-# Or directly:
+# Ou diretamente:
 docker compose -f load-tests/docker-compose.loadtest.yml up --build
 ```
 
-Access the Locust Web UI at **http://localhost:8089**, set your desired user count and spawn rate, then click **Start**.
+Acesse a UI web do Locust em **http://localhost:8089**, defina o número de usuários e a taxa de criação, depois clique em **Start**.
 
-### Headless (CI / scripted)
+### Headless (CI / automatizado)
 
 ```bash
 docker compose -f load-tests/docker-compose.loadtest.yml run --rm locust-master \
@@ -28,13 +28,13 @@ docker compose -f load-tests/docker-compose.loadtest.yml run --rm locust-master 
   --host http://api:8000
 ```
 
-| Flag | Meaning |
-|------|---------|
-| `-u 50` | Total simulated users |
-| `-r 5` | Users spawned per second |
-| `--run-time 60s` | Stop after 60 seconds |
+| Flag | Significado |
+|------|-------------|
+| `-u 50` | Total de usuários simulados |
+| `-r 5` | Usuários criados por segundo |
+| `--run-time 60s` | Parar após 60 segundos |
 
-### Stopping
+### Encerramento
 
 ```bash
 docker compose -f load-tests/docker-compose.loadtest.yml down
@@ -42,32 +42,32 @@ docker compose -f load-tests/docker-compose.loadtest.yml down
 
 ---
 
-## User classes
+## Classes de usuário
 
-| Class | Scenario |
-|-------|----------|
+| Classe | Cenário |
+|--------|---------|
 | `AuthFlow` | register → login → refresh → logout |
 | `AuthenticatedUser` | login → GET /users/me → PUT /users/me |
 
 ---
 
-## Key metrics to watch
+## Métricas principais
 
-| Metric | Healthy target | Action if breached |
-|--------|---------------|--------------------|
-| **RPS** (requests/s) | Stable under load | Check worker count, DB connections |
-| **p95 response time** | < 500 ms | Profile slow endpoints, add indexes |
-| **Failure rate** | < 1 % | Check logs: `docker compose logs api` |
-| **p99 response time** | < 1 000 ms | Look for lock contention or N+1 queries |
+| Métrica | Alvo saudável | Ação se ultrapassado |
+|---------|---------------|----------------------|
+| **RPS** (requisições/s) | Estável sob carga | Verificar contagem de workers, conexões com DB |
+| **p95 tempo de resposta** | < 500ms | Perfilar endpoints lentos, adicionar índices |
+| **Taxa de falhas** | < 1% | Verificar logs: `docker compose logs api` |
+| **p99 tempo de resposta** | < 1.000ms | Investigar contenção de lock ou queries N+1 |
 
-Locust reports these in real time on the **Statistics** tab and as a downloadable CSV.
+O Locust exibe essas métricas em tempo real na aba **Statistics** e permite exportar como CSV.
 
 ---
 
-## Scaling workers
+## Escalando workers
 
 ```bash
 docker compose -f load-tests/docker-compose.loadtest.yml up --scale locust-worker=4
 ```
 
-Each worker handles its own user slice; master aggregates all results.
+Cada worker gerencia sua fatia de usuários; o master agrega todos os resultados.

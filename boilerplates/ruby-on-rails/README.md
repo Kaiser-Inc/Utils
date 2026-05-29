@@ -47,6 +47,7 @@ make console    # Rails console
 make seed       # Popular banco com dados de dev
 make audit      # Checar vulnerabilidades (bundle-audit)
 make load-test  # Rodar k6 via Docker
+make metrics    # Coletar métricas e gerar relatório
 ```
 
 ## Dados de desenvolvimento
@@ -137,17 +138,50 @@ Erros de domínio (`Errors::UnauthorizedError`, `Errors::EmailAlreadyInUseError`
 | `PUT` | `/users/me` | Bearer | Atualizar perfil |
 | `DELETE` | `/users/me` | Bearer | Deletar conta |
 
+## Métricas de Qualidade
+
+```bash
+make metrics
+```
+
+Gera relatórios em `metrics/` (JSON + Markdown):
+
+| Ferramenta | Métrica | Referência |
+|------------|---------|------------|
+| RuboCop `Metrics/CyclomaticComplexity` | Complexidade Ciclomática McCabe | McCabe, 1976 |
+| Ripper (stdlib) | Halstead (volume, esforço, bugs estimados) | Halstead, 1977 |
+| Fórmula MI | Índice de Manutenibilidade (0–100) | Oman & Hagemeister, 1992 |
+| Flog | Score de "code pain" por método | — |
+| RuboCop | Score de lint (0–10) | — |
+| SimpleCov | Cobertura de testes (%) | — |
+| Brakeman + bundler-audit | Vulnerabilidades de segurança | — |
+
 ## Variáveis de ambiente
 
 Copie `.env.example` e ajuste:
 
 ```env
-DATABASE_URL=postgresql://docker:docker@db:5432/boilerplate_development
+DATABASE_URL=postgresql://postgres:postgres@db:5432/boilerplate_development
 RAILS_ENV=development
 SECRET_KEY_BASE=troque-por-um-secret-forte
+SECRET_KEY=troque-por-um-secret-forte-32chars
 CORS_ORIGIN=http://localhost:4200
 OTLP_ENDPOINT=http://jaeger:4317
 ```
+
+## Gotchas / Convenções
+
+- **Dois secrets distintos:** `SECRET_KEY` (env) assina/valida o **JWT** —
+  `ENV.fetch("SECRET_KEY")` em `authenticatable.rb` e nos interactors
+  `generate_tokens_service.rb` / `rotate_refresh_token_service.rb`. **Nunca** use
+  `Rails.application.secret_key_base` para JWT. `SECRET_KEY_BASE` é só para a sessão Rails.
+- **`decode_jwt` falha de forma explícita:** em `JWT::DecodeError` relança
+  `Errors::InvalidTokenError` (e `JWT::ExpiredSignature` → `Errors::TokenExpiredError`) —
+  não retorna `nil` silenciosamente, evitando mensagens enganosas downstream.
+- **`docker-compose.yml`** passa `SECRET_KEY` para o container (além de `SECRET_KEY_BASE`).
+- **Sem Devise:** auth é JWT custom com gem `jwt` + `has_secure_password`.
+- **`.env`** nunca commitado — copie de `.env.example`. `coverage/` é gerado por teste e
+  fica fora do git.
 
 ## Load Testing
 

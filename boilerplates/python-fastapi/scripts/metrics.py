@@ -115,6 +115,42 @@ def collect_xenon(src: str) -> dict:
     }
 
 
+def collect_ruff(src: str) -> dict:
+    """Verificação de estilo e erros via Ruff (rápido, moderno)."""
+    _, out, _ = run(py("ruff", "check", "--output-format=json", src))
+    try:
+        messages = json.loads(out) if out.strip().startswith("[") else []
+    except json.JSONDecodeError:
+        messages = []
+    return {"messages": messages}
+
+
+def collect_security() -> dict:
+    """Auditoria de vulnerabilidades via pip-audit."""
+    code, out, err = run(py("pip_audit", "--format=json", "-r", str(ROOT / "requirements.txt")))
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return {"error": (err or out).strip(), "passed": False, "total_vulnerabilities": 0, "vulnerabilities": []}
+
+    vulns = []
+    for dep in data.get("dependencies", []):
+        for v in dep.get("vulns", []):
+            vulns.append({
+                "package": dep.get("name"),
+                "version": dep.get("version"),
+                "id": v.get("id"),
+                "description": v.get("description", ""),
+                "fix_versions": v.get("fix_versions", []),
+            })
+
+    return {
+        "passed": len(vulns) == 0,
+        "total_vulnerabilities": len(vulns),
+        "vulnerabilities": vulns,
+    }
+
+
 def collect_coverage(src_module: str) -> dict:
     """Cobertura de testes via pytest-cov."""
     import re as _re
@@ -271,6 +307,23 @@ def summarize_pylint(pylint_data: dict) -> dict:
     }
 
 
+def summarize_ruff(ruff_data: dict) -> dict:
+    messages = ruff_data.get("messages", [])
+    by_code: dict[str, int] = {}
+    by_file: dict[str, int] = {}
+    for msg in messages:
+        code = msg.get("code") or "unknown"
+        by_code[code] = by_code.get(code, 0) + 1
+        fname = Path(msg.get("filename", "?")).name
+        by_file[fname] = by_file.get(fname, 0) + 1
+
+    return {
+        "total_issues": len(messages),
+        "by_code": by_code,
+        "by_file": by_file,
+    }
+
+
 # ── Export: XLSX ──────────────────────────────────────────────────────────────
 
 def generate_xlsx(report: dict, path: Path) -> None:
@@ -308,8 +361,10 @@ def generate_xlsx(report: dict, path: Path) -> None:
     mi = report["maintainability_index"]["summary"]
     hal = report["halstead"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
-    xen = report["xenon"]
+    pyl = report["lint"]["summary"]
+    xen = report["security"]
+    ruf = report.get("ruff", {}).get("summary", {})
+    sec = report.get("pip_audit", {})
 
     rows = [
         ("Gerado em", report["generated_at"]),
@@ -339,15 +394,22 @@ def generate_xlsx(report: dict, path: Path) -> None:
         ("Linhas faltando", cov.get("missing_lines")),
         ("Total statements", cov.get("num_statements")),
         ("", ""),
-        ("── Pylint ──", ""),
+        ("── Lint ──", ""),
         ("Score", pyl.get("score")),
         ("Total issues", pyl.get("total_issues")),
         ("", ""),
-        ("── Xenon ──", ""),
+        ("── Xenon Thresholds ──", ""),
         ("Resultado", "✅ Passou" if xen.get("passed") else "❌ Falhou"),
         ("Max absoluto", xen["thresholds"]["max_absolute"]),
         ("Max módulo", xen["thresholds"]["max_modules"]),
         ("Média máxima", xen["thresholds"]["max_average"]),
+        ("", ""),
+        ("── Ruff ──", ""),
+        ("Total issues", ruf.get("total_issues", "N/A")),
+        ("", ""),
+        ("── Segurança (pip-audit) ──", ""),
+        ("Resultado", "✅ Passou" if sec.get("passed") else "❌ Vulnerabilidades encontradas"),
+        ("Total vulnerabilidades", sec.get("total_vulnerabilities", "N/A")),
     ]
 
     ws.column_dimensions["A"].width = 30
@@ -386,15 +448,39 @@ def generate_xlsx(report: dict, path: Path) -> None:
         fill = PASS_FILL if pct >= 80 else FAIL_FILL if pct < 50 else ALT_FILL
         ws4.cell(row=r, column=2).fill = fill
 
-    # ── Aba 5: Pylint issues ──────────────────────────────────────────────────
-    ws5 = wb.create_sheet("Pylint Issues")
+    # ── Aba 5: Lint issues ───────────────────────────────────────────────────
+    ws5 = wb.create_sheet("Lint Issues")
     by_type = pyl.get("by_type", {})
     write_table(ws5,
         ["Tipo", "Quantidade"],
         sorted(by_type.items(), key=lambda x: x[1], reverse=True),
     )
 
-    # ── Aba 6: Dados brutos (JSON) ────────────────────────────────────────────
+    # ── Aba 6: Ruff issues ────────────────────────────────────────────────────
+    ws6 = wb.create_sheet("Ruff Issues")
+    ruf_sum = report.get("ruff", {}).get("summary", {})
+    ruf_by_code = ruf_sum.get("by_code", {})
+    write_table(ws6,
+        ["Código", "Quantidade"],
+        sorted(ruf_by_code.items(), key=lambda x: x[1], reverse=True),
+    )
+
+    # ── Aba 7: Segurança ──────────────────────────────────────────────────────
+    ws7 = wb.create_sheet("Segurança")
+    sec = report.get("pip_audit", {})
+    sec_vulns = sec.get("vulnerabilities", [])
+    if sec_vulns:
+        write_table(ws7,
+            ["Pacote", "Versão", "ID", "Descrição", "Fix Versions"],
+            [(v.get("package"), v.get("version"), v.get("id"),
+              v.get("description", "")[:80], ", ".join(v.get("fix_versions", [])))
+             for v in sec_vulns],
+        )
+    else:
+        ws7.cell(row=1, column=1, value="✅ Nenhuma vulnerabilidade encontrada")
+        ws7.cell(row=1, column=1).font = Font(bold=True, color="375623")
+
+    # ── Aba 8: Dados brutos (JSON) ────────────────────────────────────────────
     ws6 = wb.create_sheet("JSON Bruto")
     ws6.cell(row=1, column=1, value="JSON completo para ingestão em IA:")
     ws6.cell(row=1, column=1).font = Font(bold=True)
@@ -430,7 +516,7 @@ def generate_charts(report: dict, base: Path) -> dict[str, Path]:
     cc = report["cyclomatic_complexity"]["summary"]
     mi = report["maintainability_index"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
+    pyl = report["lint"]["summary"]
     paths: dict[str, Path] = {}
 
     # ── 1: Complexidade Ciclomática por arquivo ───────────────────────────────
@@ -575,8 +661,10 @@ def generate_html(report: dict, chart_paths: dict[str, Path], path: Path) -> Non
     mi = report["maintainability_index"]["summary"]
     hal = report["halstead"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
-    xen = report["xenon"]
+    pyl = report["lint"]["summary"]
+    xen = report["security"]
+    ruf = report.get("ruff", {}).get("summary", {})
+    sec = report.get("pip_audit", {})
     ts = report["generated_at"]
 
     def kv_table(rows: list[tuple]) -> str:
@@ -680,6 +768,16 @@ def generate_html(report: dict, chart_paths: dict[str, Path], path: Path) -> Non
     <div class="lbl">Xenon</div>
     <div class="sub">max-absolute C | avg A</div>
   </div>
+  <div class="card">
+    <div class="num">{ruf.get("total_issues", "N/A")}</div>
+    <div class="lbl">Ruff Issues</div>
+    <div class="sub">linting moderno</div>
+  </div>
+  <div class="card">
+    <div class="num">{"✅" if sec.get("passed") else "❌" if "passed" in sec else "—"}</div>
+    <div class="lbl">Segurança</div>
+    <div class="sub">{sec.get("total_vulnerabilities", "N/A")} vulnerabilidades</div>
+  </div>
 </div>
 
 <h2>Gráficos</h2>
@@ -726,6 +824,18 @@ def generate_html(report: dict, chart_paths: dict[str, Path], path: Path) -> Non
     ("Média máxima", xen["thresholds"]["max_average"]),
 ])}
 
+<h2>Ruff — Linting Moderno</h2>
+{kv_table(
+    [("Total issues", ruf.get("total_issues", "N/A"))]
+    + [(f"Código `{c}`", n) for c, n in list(sorted(ruf.get("by_code", {}).items(), key=lambda x: x[1], reverse=True))[:10]]
+)}
+
+<h2>Segurança — pip-audit</h2>
+{kv_table([
+    ("Resultado", badge(sec.get("passed", True)) if "passed" in sec else "N/A"),
+    ("Total vulnerabilidades", sec.get("total_vulnerabilities", "N/A")),
+] + ([(v.get("id", ""), f"{v.get('package')} {v.get('version')} → fix: {', '.join(v.get('fix_versions', [])) or 'N/A'}") for v in sec.get("vulnerabilities", [])] if sec.get("vulnerabilities") else []))}
+
 </main>
 <footer>Gerado por scripts/metrics.py · KaiserInc</footer>
 </body>
@@ -742,8 +852,10 @@ def generate_markdown(report: dict) -> str:
     mi = report["maintainability_index"]["summary"]
     hal = report["halstead"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
-    xen = report["xenon"]
+    pyl = report["lint"]["summary"]
+    xen = report["security"]
+    ruf = report.get("ruff", {}).get("summary", {})
+    sec = report.get("pip_audit", {})
 
     lines = [
         f"# Relatório de Métricas — {ts}",
@@ -803,7 +915,7 @@ def generate_markdown(report: dict) -> str:
         "",
         "---",
         "",
-        "## 5. Pylint",
+        "## 5. Lint (Pylint)",
         "",
         f"| Métrica | Valor |",
         f"|---------|-------|",
@@ -818,7 +930,7 @@ def generate_markdown(report: dict) -> str:
         "",
         "---",
         "",
-        "## 6. Xenon — Thresholds de Complexidade",
+        "## 6. Xenon Thresholds de Complexidade",
         "",
         f"| Threshold | Valor |",
         f"|-----------|-------|",
@@ -830,6 +942,42 @@ def generate_markdown(report: dict) -> str:
         "```",
         xen.get("output", ""),
         "```",
+        "",
+        "---",
+        "",
+        "## 7. Ruff — Linting Moderno",
+        "",
+        f"| Métrica | Valor |",
+        f"|---------|-------|",
+        f"| Total de issues | **{ruf.get('total_issues', 'N/A')}** |",
+    ]
+
+    if ruf.get("by_code"):
+        lines += ["", "**Issues por código:**", ""]
+        lines += [f"| Código | Quantidade |", f"|--------|------------|"]
+        for code, cnt in sorted(ruf.get("by_code", {}).items(), key=lambda x: x[1], reverse=True)[:15]:
+            lines.append(f"| `{code}` | {cnt} |")
+
+    lines += [
+        "",
+        "---",
+        "",
+        "## 8. Segurança — pip-audit",
+        "",
+        f"| Resultado | {'✅ Sem vulnerabilidades' if sec.get('passed') else '❌ Vulnerabilidades encontradas'} |",
+        f"|-----------|------|",
+        f"| Total | **{sec.get('total_vulnerabilities', 'N/A')}** |",
+    ]
+
+    sec_vulns = sec.get("vulnerabilities", [])
+    if sec_vulns:
+        lines += ["", "**Vulnerabilidades:**", ""]
+        lines += [f"| Pacote | Versão | ID | Fix |", f"|--------|--------|-----|-----|"]
+        for v in sec_vulns:
+            fix = ", ".join(v.get("fix_versions", [])) or "N/A"
+            lines.append(f"| {v.get('package')} | {v.get('version')} | {v.get('id')} | {fix} |")
+
+    lines += [
         "",
         "---",
         "",
@@ -865,7 +1013,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Verifica dependências
-    missing = [t for t in ["radon", "pylint", "xenon"] if not check_tool(t)]
+    missing = [t for t in ["radon", "pylint", "xenon", "ruff"] if not check_tool(t)]
     if missing:
         print(f"❌ Ferramentas não encontradas: {', '.join(missing)}")
         print("   Execute: make metrics-install")
@@ -892,9 +1040,16 @@ def main():
     print("  → Cobertura de testes (pytest-cov)...")
     coverage_data = collect_coverage(src_module)
 
+    print("  → Ruff (linting moderno)...")
+    ruff_raw = collect_ruff(src)
+    ruff_summary = summarize_ruff(ruff_raw)
+
+    print("  → Segurança (pip-audit)...")
+    security_data = collect_security()
+
     report = {
         "generated_at": ts,
-        "project": "python-fastapi-boilerplate",
+        "project": "python-fastapi",
         "cyclomatic_complexity": {
             "raw": cc_raw,
             "summary": summarize_cc(cc_raw),
@@ -907,12 +1062,17 @@ def main():
             "raw": hal_raw,
             "summary": summarize_hal(hal_raw),
         },
-        "pylint": {
+        "lint": {
             "raw": pylint_raw,
             "summary": summarize_pylint(pylint_raw),
         },
-        "xenon": xenon_data,
+        "security": xenon_data,
         "test_coverage": coverage_data,
+        "ruff": {
+            "raw": ruff_raw,
+            "summary": ruff_summary,
+        },
+        "pip_audit": security_data,
     }
 
     base = output_dir / f"report_{ts}"
@@ -954,10 +1114,15 @@ def main():
     print(f"   MI média:        {mi_s.get('average', 'N/A')} ({mi_s.get('grade', '')})")
     print(f"   Cobertura:       {cov_s.get('percent', 'N/A')}%")
     print(f"   Xenon:           {'✅' if xenon_data.get('passed') else '❌'}")
-    print(f"   Pylint issues:   {report['pylint']['summary'].get('total_issues', 0)}")
-    pyl_score = report['pylint']['summary'].get('score')
+    print(f"   Pylint issues:   {report['lint']['summary'].get('total_issues', 0)}")
+    pyl_score = report['lint']['summary'].get('score')
     if pyl_score is not None:
         print(f"   Pylint score:    {pyl_score:.2f}/10")
+    print(f"   Ruff issues:     {report['ruff']['summary'].get('total_issues', 'N/A')}")
+    sec = report.get('pip_audit', {})
+    if 'passed' in sec:
+        status = "✅ sem vulnerabilidades" if sec['passed'] else f"❌ {sec['total_vulnerabilities']} vulnerabilidade(s)"
+        print(f"   Segurança:       {status}")
 
 
 if __name__ == "__main__":

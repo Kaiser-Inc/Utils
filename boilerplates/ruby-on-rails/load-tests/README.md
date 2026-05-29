@@ -1,43 +1,43 @@
-# Load Tests
+# Testes de Carga
 
-k6 load tests for the Ruby on Rails boilerplate API (port 3000).
+Testes de carga com k6 para o boilerplate Ruby on Rails (porta 3000).
 
-## Scenarios
+## Cenários
 
-| Script | VUs | Duration |
-|--------|-----|----------|
+| Script | VUs | Duração |
+|--------|-----|---------|
 | `auth.js` | 0→20→0 | ~100s |
 | `users.js` | 0→10→0 | ~90s |
 
-## Running
+## Executando
 
-### Auth scenario (default)
+### Cenário de autenticação (padrão)
 
 ```bash
 make load-test
 ```
 
-### Users scenario
+### Cenário de usuários
 
 ```bash
 docker compose -f load-tests/docker-compose.loadtest.yml run --rm k6 run /scripts/users.js
 ```
 
-### Against a live server
+### Contra um servidor externo
 
 ```bash
-BASE_URL=http://your-host:3000 k6 run load-tests/k6/auth.js
+BASE_URL=http://seu-host:3000 k6 run load-tests/k6/auth.js
 ```
 
-## Key metrics to watch
+## Métricas principais
 
-| Metric | Target |
-|--------|--------|
+| Métrica | Alvo |
+|---------|------|
 | `http_req_duration` p95 | < 500ms |
 | `http_req_failed` | < 1% |
 | `auth_flow_success` | > 99% |
 
-## Teardown
+## Encerramento
 
 ```bash
 docker compose -f load-tests/docker-compose.loadtest.yml down

@@ -65,9 +65,9 @@ describe("PATCH /auth/refresh", () => {
     await registerAndLogin(ctx.app);
 
     const pastDate = new Date(Date.now() - 1000);
-    ctx.refreshTokenRepo.items.forEach((t) => {
+    for (const t of ctx.refreshTokenRepo.items) {
       (t as { expiresAt: Date }).expiresAt = pastDate;
-    });
+    }
 
     expect(ctx.refreshTokenRepo.items.length).toBeGreaterThan(0);
     await ctx.refreshTokenRepo.deleteExpired();

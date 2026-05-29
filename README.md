@@ -4,7 +4,7 @@
 
 # KaiserInc Utils
 
-Repositório central de ferramentas, boilerplates e arquivos utilitários usados nos projetos da KaiserInc. A ideia é consolidar num único lugar os padrões arquiteturais, configurações e pontos de partida já validados — eliminando o custo de setup repetitivo a cada novo projeto.
+Repositório central de ferramentas, boilerplates e arquivos utilitários usados nos projetos da KaiserInc. A ideia é consolidar num único lugar os padrões arquiteturais, configurações e pontos de partida já validados — eliminando o custo de setup repetitivo a cada novo projeto. Inclui três boilerplates de API e dois boilerplates frontend.
 
 ---
 
@@ -12,13 +12,15 @@ Repositório central de ferramentas, boilerplates e arquivos utilitários usados
 
 ### `boilerplates/`
 
-Três boilerplates de API prontos para uso, com os mesmos endpoints, padrões de autenticação e convenções arquiteturais — cada um adaptado idiomaticamente para sua stack.
+Três boilerplates de API e dois boilerplates frontend prontos para uso, com os mesmos endpoints, padrões de autenticação e convenções arquiteturais — cada um adaptado idiomaticamente para sua stack.
 
-| Stack | Diretório | Framework | API | Docs | README |
-|---|---|---|---|---|---|
-| Python | `boilerplates/python-fastapi/` | FastAPI + SQLAlchemy + Alembic | `http://localhost:8000` | `http://localhost:8000/docs` | [README](boilerplates/python-fastapi/README.md) |
-| Node.js | `boilerplates/node-fastify/` | Fastify 5 + Drizzle ORM + TypeScript | `http://localhost:3000` | `http://localhost:3000/docs` | [README](boilerplates/node-fastify/README.md) |
-| Ruby | `boilerplates/ruby-on-rails/` | Rails 8.1 API-only | `http://localhost:3000` | `http://localhost:3000/scalar` · `http://localhost:3000/api-docs` | [README](boilerplates/ruby-on-rails/README.md) |
+| Stack | Diretório | Framework | URL | README |
+|---|---|---|---|---|
+| Python | `boilerplates/python-fastapi/` | FastAPI + SQLAlchemy | `http://localhost:8000` | [README](boilerplates/python-fastapi/README.md) |
+| Node.js | `boilerplates/node-fastify/` | Fastify 5 + Drizzle | `http://localhost:3000` | [README](boilerplates/node-fastify/README.md) |
+| Ruby | `boilerplates/ruby-on-rails/` | Rails 8.1 API-only | `http://localhost:3000` | [README](boilerplates/ruby-on-rails/README.md) |
+| Next.js | `boilerplates/next-saas/` | Next.js 15 App Router | `http://localhost:4000` | [README](boilerplates/next-saas/README.md) |
+| Expo | `boilerplates/expo-mobile/` | Expo SDK 52 + Expo Router v4 | iOS / Android | [README](boilerplates/expo-mobile/README.md) |
 
 Todos implementam:
 - **Autenticação dual-token** — access JWT (15min) + refresh token em HTTP-only cookie (7d)
@@ -28,6 +30,14 @@ Todos implementam:
 - **Telemetria** com OpenTelemetry + Jaeger
 - **Linting** configurado (ruff / Biome / RuboCop)
 - **Load testing** tooling (Locust para Python, k6 para Node/Rails)
+
+Frontend boilerplates (`next-saas` e `expo-mobile`) implementam:
+- **Design System KaiserInc** — paleta roxa unificada, Roboto, tokens CSS, componentes com Composition Pattern (CVA + Radix)
+- **Autenticação** via JWT do backend — agnósticos de stack (funciona com qualquer dos 3 backends)
+- **Showcase de componentes** — página/tela dedicada com todos os primitivos e composições
+- **pnpm** como package manager
+- **Mesmas métricas de qualidade** — CC/MI/Halstead via `scripts/metrics.ts`, lint, cobertura, audit
+- **Testes** unitários e E2E (Playwright para web, Maestro para mobile)
 
 ---
 
@@ -62,6 +72,26 @@ docker compose up
 # API em http://localhost:3000 | Docs em http://localhost:3000/scalar ou /api-docs
 ```
 
+**Next.js (SaaS):**
+```bash
+cp -r boilerplates/next-saas/ ~/KaiserInc/novo-projeto
+cd ~/KaiserInc/novo-projeto
+cp .env.example .env
+pnpm install
+pnpm dev
+# App em http://localhost:4000 | Requer backend em BACKEND_URL
+```
+
+**Expo (Mobile):**
+```bash
+cp -r boilerplates/expo-mobile/ ~/KaiserInc/novo-projeto
+cd ~/KaiserInc/novo-projeto
+cp .env.example .env
+pnpm install
+pnpm start
+# iOS: pressione i | Android: pressione a
+```
+
 ### Como usar com Claude Code
 
 Este repositório integra com a skill `/KaiserInc-newProject` do Claude Code, que automatiza a criação de novos projetos a partir dos boilerplates.
@@ -78,6 +108,21 @@ A skill suporta três modos:
 ```
 
 O Claude irá perguntar qual stack (python / node / rails), qual modo (lean / full / fullstack-monorepo) e o nome do projeto — e configurará tudo automaticamente.
+
+#### Métricas em um projeto existente — `/KaiserInc-SetupMetriK`
+
+Para instrumentar um projeto **já existente** (derivado destes boilerplates) com a tooling de
+exportação de métricas — e opcionalmente subir o dashboard **KaiserInc-MetriK** — use:
+
+```
+/KaiserInc-SetupMetriK
+```
+
+Essa skill **não** cria projeto (isso é `/KaiserInc-newProject`). Ela: detecta a stack,
+garante `scripts/metrics.*` + targets de Makefile + pasta `metrics/`, valida o relatório
+contra o schema do MetriK e — com seu consentimento — ou roda o MetriK **localmente via
+Docker** (apontado para a pasta `metrics/` do projeto) ou orienta o uso da **versão web
+publicada** (upload via file picker). Nunca edita o código do MetriK e nunca faz commit.
 
 ---
 
@@ -101,7 +146,9 @@ KaiserInc-Utils/
 ├── boilerplates/
 │   ├── python-fastapi/         # Clean Architecture + DDD (FastAPI)
 │   ├── node-fastify/           # Clean Architecture (Fastify + TypeScript)
-│   └── ruby-on-rails/          # Organizers + Interactors (Rails API)
+│   ├── ruby-on-rails/          # Organizers + Interactors (Rails API)
+│   ├── next-saas/              # Next.js 15 App Router — SaaS autenticado
+│   └── expo-mobile/            # Expo SDK 52 + Expo Router v4 — Mobile autenticado
 ├── docs/adr/                   # Architecture Decision Records
 ├── CONTRIBUTING.md             # Convenções de commit + spec de erros + checklist
 ├── renovate.json               # Atualização automática de dependências
@@ -125,4 +172,19 @@ make audit    # escaneia CVEs em dependências
 make lint     # verifica style/type errors
 make test     # roda suite completa de testes
 make load-test # executa k6 / Locust
+make metrics  # coleta CC/MI/Halstead/cobertura/segurança e gera relatório
 ```
+
+### Dashboard de métricas — KaiserInc-MetriK
+
+`make metrics` gera `metrics/report_YYYY-MM-DD_HHMMSS.json` no schema consumido pelo
+**KaiserInc-MetriK** (`~/KaiserInc/KaiserInc-MetriKa/`), um dashboard Next.js que lê esses
+relatórios. Dois modos de visualização:
+
+- **Local (Docker)** — roda o MetriK na sua máquina com a pasta `metrics/` do projeto
+  montada (`METRICS_DIR=/metrics`); leitura direta, sem upload.
+- **Web (deploy)** — usa a versão publicada; faça upload dos `report_*.json` pelo
+  file/directory picker (parse no browser).
+
+A skill `/KaiserInc-SetupMetriK` automatiza ambos os caminhos (detecção de stack, checagem
+de compatibilidade de schema e gate de consentimento antes de qualquer alteração).

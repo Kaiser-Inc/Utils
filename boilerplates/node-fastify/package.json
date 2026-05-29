@@ -24,6 +24,7 @@
     "@fastify/swagger": "^9.4.0",
     "@opentelemetry/auto-instrumentations-node": "^0.76.0",
     "@opentelemetry/core": "^2.7.1",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.218.0",
     "@opentelemetry/sdk-node": "^0.218.0",
     "@scalar/fastify-api-reference": "^1.25.0",
     "argon2": "^0.43.0",

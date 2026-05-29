@@ -1,0 +1,8 @@
+appId: com.kaiserinc.expomobile
+---
+- launchApp
+- assertVisible: "Início"
+- assertVisible: "Email"
+- assertVisible: "Função"
+- tapOn: "Configurações"
+- assertVisible: "Configurações"

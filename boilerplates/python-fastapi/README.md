@@ -61,9 +61,12 @@ make metrics-install
 make metrics
 ```
 
-Gera dois arquivos em `metrics/`:
+Gera arquivos em `metrics/`:
 - `report_YYYY-MM-DD_HHMMSS.json` — dados brutos + sumário estruturado
 - `report_YYYY-MM-DD_HHMMSS.md` — relatório legível para inclusão em documentos
+- `report_YYYY-MM-DD_HHMMSS.xlsx` — planilha multi-aba para análise com IA
+- `report_YYYY-MM-DD_HHMMSS.html` — relatório visual standalone (abre no browser)
+- `report_YYYY-MM-DD_HHMMSS_*.png` — gráficos individuais (CC, MI, cobertura, pylint)
 
 ### Métricas coletadas
 
@@ -73,8 +76,10 @@ Gera dois arquivos em `metrics/`:
 | `radon mi` | Índice de manutenibilidade (0–100) | Oman & Hagemeister, 1992 |
 | `radon hal` | Halstead (volume, esforço, bugs estimados) | Halstead, 1977 |
 | `pylint` | Score de qualidade (0–10) + issues por categoria | — |
+| `ruff` | Linting moderno — issues por código de regra | — |
 | `xenon` | Enforcement de thresholds de complexidade | — |
 | `pytest-cov` | Cobertura de testes (%) | — |
+| `pip-audit` | Vulnerabilidades em dependências (CVEs) | — |
 
 ### Interpretação
 
@@ -170,12 +175,32 @@ Request → Controller → Service (Use Case) → Repository → Response
 Copie `.env.example` e ajuste:
 
 ```env
-DATABASE_URL=postgresql://docker:docker@db:5432/boilerplate
-SECRET_KEY=troque-por-um-secret-forte
+DATABASE_URL=postgresql://postgres:postgres@db:5432/boilerplate
+SECRET_KEY=troque-por-um-secret-forte-32chars
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 OTLP_ENDPOINT=http://jaeger:4317
+ENVIRONMENT=development
+CORS_ORIGIN=http://localhost:4200
 ```
+
+> `CORS_ORIGIN` aceita lista separada por vírgula. `ENVIRONMENT=production` desliga o
+> echo SQL e ativa `secure=True` no cookie de refresh.
+
+## Gotchas / Convenções
+
+- **CORS é dirigido por ambiente** (`src/app/core/cors.py`): origens lidas de
+  `settings.cors_origin` (nunca hardcoded), métodos e headers restritos
+  (`GET/POST/PUT/PATCH/DELETE/OPTIONS` · `Authorization/Content-Type/X-Request-ID`) —
+  não usa `["*"]`.
+- **Echo SQL condicional** (`src/app/core/database.py`): `echo=settings.environment ==
+  "development"` — evita vazar PII nos logs de produção.
+- **OpenAPI** (`src/app/core/openapi.py`): `PUBLIC_PATHS` (ex.: `/health`, `/auth/*`,
+  `/docs`) não recebem `BearerAuth` no schema — só rotas protegidas exigem token no Swagger.
+- **Entrypoint**: `entrypoint.sh` roda `uvicorn main:app --host 0.0.0.0 --port 8000
+  --app-dir src` (o pacote app vive em `src/`).
+- **`.env`** nunca commitado — copie de `.env.example`. `coverage.json`/`htmlcov/` são
+  gerados por teste e ficam fora do git (PNGs versionados em `metrics/` são intencionais).
 
 ## Load Testing
 

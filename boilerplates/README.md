@@ -1,16 +1,25 @@
 # KaiserInc Boilerplates
 
-Boilerplates de API prontos para uso, seguindo padrões arquiteturais consistentes entre stacks. Todos implementam autenticação dual-token, Clean Architecture (adaptada para cada stack), documentação OpenAPI com Scalar e ambiente Docker completo.
+Boilerplates prontos para uso, seguindo padrões arquiteturais consistentes entre stacks. Os backends implementam autenticação dual-token, Clean Architecture (adaptada para cada stack), documentação OpenAPI com Scalar e ambiente Docker completo. Os frontends integram com qualquer backend via contrato unificado e usam o Design System KaiserInc.
 
 ---
 
 ## Boilerplates disponíveis
+
+### APIs (backend)
 
 | Stack | Diretório | Porta padrão | README |
 |---|---|---|---|
 | Python / FastAPI | `python-fastapi/` | 8000 | [python-fastapi/README.md](python-fastapi/README.md) |
 | Node.js / Fastify | `node-fastify/` | 3000 | [node-fastify/README.md](node-fastify/README.md) |
 | Ruby on Rails | `ruby-on-rails/` | 3000 | [ruby-on-rails/README.md](ruby-on-rails/README.md) |
+
+### Frontend
+
+| Stack | Diretório | Porta padrão | README |
+|---|---|---|---|
+| Next.js 15 SaaS | `next-saas/` | 4000 | [next-saas/README.md](next-saas/README.md) |
+| Expo / React Native | `expo-mobile/` | iOS / Android | [expo-mobile/README.md](expo-mobile/README.md) |
 
 ---
 
@@ -182,5 +191,7 @@ Authorization: Bearer eyJ...
 boilerplates/
 ├── python-fastapi/     # Clean Architecture + DDD (FastAPI)
 ├── node-fastify/       # Clean Architecture adaptada (Fastify + TypeScript)
-└── ruby-on-rails/      # Organizers + Interactors (Rails API)
+├── ruby-on-rails/      # Organizers + Interactors (Rails API)
+├── next-saas/          # Next.js 15 App Router — SaaS autenticado
+└── expo-mobile/        # Expo SDK 52 + Expo Router v4 — Mobile autenticado
 ```

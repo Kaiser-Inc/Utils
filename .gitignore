@@ -1,6 +1,16 @@
-# Node
+# Node — pnpm-lock.yaml é canônico; package-lock.json nunca commitado
+boilerplates/*/package-lock.json
+boilerplates/*/yarn.lock
 boilerplates/node-fastify/node_modules/
 boilerplates/node-fastify/dist/
+
+# Coverage — gerado por testes, nunca commitado
+boilerplates/*/coverage/
+boilerplates/*/coverage.json
+boilerplates/*/coverage.xml
+boilerplates/*/.coverage
+boilerplates/*/htmlcov/
+boilerplates/*/tsconfig.tsbuildinfo
 
 # Python
 boilerplates/python-fastapi/__pycache__/
@@ -18,9 +28,15 @@ boilerplates/ruby-on-rails/storage/
 boilerplates/ruby-on-rails/vendor/bundle/
 boilerplates/ruby-on-rails/.bundle/
 
+# Metrics — gerado por make metrics, nunca commitado
+boilerplates/python-fastapi/metrics/
+boilerplates/node-fastify/metrics/
+boilerplates/ruby-on-rails/metrics/
+
 # Environment files
 .env
 **/.env
+**/.env.bak
 
 # Knowledge graph output (graphify)
 graphify-out/
@@ -31,3 +47,21 @@ graphify-out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Next.js
+boilerplates/next-saas/node_modules/
+boilerplates/next-saas/.next/
+boilerplates/next-saas/coverage/
+boilerplates/next-saas/metrics/
+boilerplates/next-saas/playwright-report/
+boilerplates/next-saas/test-results/
+boilerplates/next-saas/*.tsbuildinfo
+
+# Expo Mobile
+boilerplates/expo-mobile/node_modules/
+boilerplates/expo-mobile/.expo/
+boilerplates/expo-mobile/coverage/
+boilerplates/expo-mobile/metrics/
+boilerplates/expo-mobile/dist/
+
+analysis

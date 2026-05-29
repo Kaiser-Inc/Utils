@@ -3,7 +3,7 @@ require "swagger_helper"
 RSpec.describe "Auth API", type: :request do
   def generate_access_token(user)
     payload = { sub: user.id.to_s, role: user.role, type: "access", exp: 15.minutes.from_now.to_i }
-    JWT.encode(payload, Rails.application.secret_key_base, "HS256")
+    JWT.encode(payload, ENV.fetch("SECRET_KEY"), "HS256")
   end
 
   path "/auth/register" do

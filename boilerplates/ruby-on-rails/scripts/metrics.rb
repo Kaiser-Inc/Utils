@@ -59,11 +59,11 @@ def collect_flog
 
       file_key = if location
                    location.sub(/:(\d+)$/, "").strip
-                 else
+      else
                    # Infer file from class name heuristics
                    class_name = method.split("#").first.split(".").last
                    guessed_file(class_name)
-                 end
+      end
 
       methods << { name: method, score: score, file: file_key }
       by_file[file_key] << score
@@ -91,20 +91,206 @@ rescue StandardError => e
 end
 
 def guessed_file(class_name)
-  snake = class_name.gsub(/(.)([A-Z][a-z]+)/, '\1_\2')
-                    .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-                    .downcase
-  # Try common Rails paths
-  ["app/controllers/#{snake}_controller.rb",
-   "app/models/#{snake}.rb",
-   "app/services/#{snake}.rb",
-   "lib/#{snake}.rb"].first || "unknown"
+  # Strip well-known Rails suffixes before snake-casing to avoid double-suffix
+  # e.g. "ApplicationController" → "Application" → "application_controller.rb"
+  base = class_name
+           .sub(/Controller$/, "")
+           .sub(/Service$/, "")
+           .sub(/Model$/, "")
+           .sub(/Concern$/, "")
+  snake = base.gsub(/(.)([A-Z][a-z]+)/, '\1_\2')
+              .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+              .downcase
+  candidates = case class_name
+  when /Controller$/ then [ "app/controllers/#{snake}_controller.rb",
+                                        "app/controllers/concerns/#{snake}.rb" ]
+  when /Service$/    then [ "app/services/#{snake}_service.rb",
+                                        "app/organizers/#{snake}_service.rb" ]
+  else                    [ "app/models/#{snake}.rb",
+                                        "app/services/#{snake}.rb",
+                                        "lib/#{snake}.rb" ]
+  end
+  # Return first path that actually exists, else best guess
+  candidates.find { |f| File.exist?(File.join(ROOT, f)) } ||
+    candidates.first ||
+    "unknown"
 end
 
 def empty_complexity
   {
     summary: {
       average: 0, max: 0, min: 0, total_functions: 0, grade: "N/A", per_file: {}
+    }
+  }
+end
+
+# ─── Collect CC via RuboCop (McCabe) ─────────────────────────────────────────
+
+def collect_rubocop_cc
+  # Use a temp config that sets Max: 1 so RuboCop reports ALL methods (not just violating ones).
+  # Each offense message has the actual complexity: "Cyclomatic complexity for foo is too high. [8/1]"
+  tmp_path = File.join(ROOT, ".rubocop_metrics_tmp.yml")
+
+  begin
+    File.write(tmp_path, <<~YAML)
+      inherit_from: .rubocop.yml
+      Metrics/CyclomaticComplexity:
+        Enabled: true
+        Max: 1
+    YAML
+
+    result = run("bundle exec rubocop --config .rubocop_metrics_tmp.yml --only Metrics/CyclomaticComplexity --format json app/ lib/")
+  ensure
+    File.delete(tmp_path) rescue nil
+  end
+
+  begin
+    parsed = JSON.parse(result[:stdout])
+  rescue JSON::ParserError
+    return empty_complexity
+  end
+
+  files_data = parsed["files"] || []
+  per_file   = {}
+  all_cc     = []
+  total_fns  = 0
+
+  files_data.each do |f|
+    file_key = f["path"].to_s.sub("#{ROOT}/", "")
+    file_ccs = []
+
+    (f["offenses"] || []).each do |o|
+      # Extract actual CC from message bracket notation: "[8/1]"
+      if (m = o["message"].match(/\[(\d+)\/\d+\]/))
+        cc = m[1].to_i
+        file_ccs << cc
+        all_cc << cc
+        total_fns += 1
+      end
+    end
+
+    per_file[file_key] = (file_ccs.sum.to_f / file_ccs.size).round(2) if file_ccs.any?
+  end
+
+  return empty_complexity if all_cc.empty?
+
+  avg = all_cc.sum.to_f / all_cc.size
+  {
+    summary: {
+      average:         avg.round(2),
+      max:             all_cc.max,
+      min:             all_cc.min,
+      total_functions: total_fns,
+      grade:           grade_cc_mccabe(avg),
+      per_file:        per_file
+    }
+  }
+rescue StandardError => e
+  { error: e.message, summary: empty_complexity[:summary] }
+end
+
+# ─── Collect Halstead via Ruby Ripper ────────────────────────────────────────
+
+def collect_halstead_ripper
+  require "ripper"
+
+  ruby_files = Dir.glob(File.join(ROOT, "app/**/*.rb")) +
+               Dir.glob(File.join(ROOT, "lib/**/*.rb"))
+
+  total_bugs    = 0.0
+  total_effort  = 0.0
+  files_analyzed = 0
+  per_file_volume = {}
+
+  ruby_files.each do |file|
+    source = File.read(file, encoding: "utf-8")
+    tokens = Ripper.lex(source)
+
+    ops  = Hash.new(0) # operators
+    opds = Hash.new(0) # operands
+
+    tokens.each do |_pos, type, value|
+      case type
+      when :on_op, :on_kw
+        ops[value] += 1
+      when :on_ident, :on_const, :on_cvar, :on_ivar, :on_gvar
+        opds[value] += 1
+      when :on_int, :on_float, :on_tstring_content
+        opds[value] += 1
+      end
+    end
+
+    n1 = ops.keys.size
+    n2 = opds.keys.size
+    n1_total = ops.values.sum
+    n2_total = opds.values.sum
+
+    vocab  = n1 + n2
+    length = n1_total + n2_total
+    volume = vocab > 0 ? length * Math.log2([ vocab, 1 ].max) : 0.0
+    difficulty = n2 > 0 ? (n1.to_f / 2) * (n2_total.to_f / n2) : 0.0
+    effort = difficulty * volume
+    estimated_bugs = volume / 3000.0
+
+    rel = file.sub("#{ROOT}/", "")
+    per_file_volume[rel] = volume.round(2)
+    total_bugs   += estimated_bugs
+    total_effort += effort
+    files_analyzed += 1
+  rescue StandardError
+    next
+  end
+
+  {
+    summary: {
+      estimated_bugs: total_bugs.round(4),
+      total_effort:   total_effort.round(2),
+      files_analyzed: files_analyzed
+    },
+    per_file_volume: per_file_volume
+  }
+end
+
+# ─── Compute MI per file ──────────────────────────────────────────────────────
+
+def compute_maintainability(cc_per_file, hal_volume_per_file)
+  ruby_files = Dir.glob(File.join(ROOT, "app/**/*.rb")) +
+               Dir.glob(File.join(ROOT, "lib/**/*.rb"))
+
+  loc_per_file = {}
+  ruby_files.each do |file|
+    rel = file.sub("#{ROOT}/", "")
+    loc_per_file[rel] = File.readlines(file).reject { |l| l.strip.empty? || l.strip.start_with?("#") }.size
+  rescue StandardError
+    loc_per_file[rel] = 10
+  end
+
+  all_files = (cc_per_file.keys | hal_volume_per_file.keys).uniq
+  all_mi = []
+  per_file = {}
+
+  all_files.each do |f|
+    cc    = cc_per_file[f]     || 1.0
+    vol   = hal_volume_per_file[f] || 0.0
+    loc   = loc_per_file[f]    || 10
+
+    raw = 171 - 5.2 * Math.log([ vol, 1 ].max) - 0.23 * cc - 16.2 * Math.log([ loc, 1 ].max)
+    mi  = [ [ raw * 100.0 / 171.0, 0 ].max, 100 ].min.round(2)
+
+    per_file[f] = mi
+    all_mi << mi
+  end
+
+  return { summary: { average: 0.0, min: 0.0, max: 0.0, grade: "N/A", per_file: {} } } if all_mi.empty?
+
+  avg = all_mi.sum / all_mi.size
+  {
+    summary: {
+      average:  avg.round(2),
+      min:      all_mi.min.round(2),
+      max:      all_mi.max.round(2),
+      grade:    grade_mi_ruby(avg),
+      per_file: per_file
     }
   }
 end
@@ -231,13 +417,13 @@ def collect_lint
   total_files = files_data.size
   # Score 0–10: similar to pylint scoring
   offense_rate = total_files.positive? ? total_offenses.to_f / total_files : 0
-  score = [0, 10 - offense_rate].max.round(2)
+  score = [ 0, 10 - offense_rate ].max.round(2)
 
   summary_data = parsed["summary"] || {}
   inspected    = summary_data["inspected_file_count"] || total_files
 
   {
-    pylint: {
+    lint: {
       summary: {
         total_issues: total_offenses,
         by_type:      by_type.transform_values(&:to_i),
@@ -248,7 +434,7 @@ def collect_lint
   }
 rescue StandardError => e
   {
-    pylint: {
+    lint: {
       summary: {
         total_issues: 0,
         by_type:      {},
@@ -292,13 +478,13 @@ def collect_security
   output_line = parts.empty? ? "Brakeman: clean, bundler-audit: clean" : parts.join(", ")
 
   {
-    xenon: {
+    security: {
       passed:     passed,
       output:     output_line,
       thresholds: {
         max_absolute: "0 brakeman warnings",
         max_modules:  "0 bundler-audit vulnerabilities",
-        max_average:  "brakeman + bundler-audit"
+        max_average:  "—"
       }
     }
   }
@@ -306,9 +492,8 @@ end
 
 # ─── Grade Helpers ────────────────────────────────────────────────────────────
 
+# Flog scores: <10 good, <20 fair, <40 bad, >40 terrible
 def grade_cc(avg)
-  # Flog scores: <10 good, <20 fair, <40 bad, >40 terrible
-  # Map to A–F like Python CC grades
   if    avg <= 10 then "A"
   elsif avg <= 20 then "B"
   elsif avg <= 30 then "C"
@@ -318,40 +503,99 @@ def grade_cc(avg)
   end
 end
 
+# McCabe Cyclomatic Complexity grades (standard: A ≤ 5, B ≤ 10, etc.)
+def grade_cc_mccabe(avg)
+  if    avg <= 5  then "A (simples)"
+  elsif avg <= 10 then "B (bem estruturado)"
+  elsif avg <= 15 then "C (levemente complexo)"
+  elsif avg <= 20 then "D (complexo)"
+  elsif avg <= 25 then "E (muito complexo)"
+  else                 "F (instável)"
+  end
+end
+
+# Maintainability Index grades (0–100 scale)
+def grade_mi_ruby(avg)
+  if    avg >= 20 then "Alta manutenibilidade"
+  elsif avg >= 10 then "Manutenibilidade moderada"
+  else                 "Baixa manutenibilidade"
+  end
+end
+
 # ─── Markdown Generator ───────────────────────────────────────────────────────
 
 def generate_markdown(report)
   ts   = report[:generated_at]
   cc   = report[:cyclomatic_complexity][:summary]
+  flog = report[:flog_score][:summary]
+  mi   = report[:maintainability_index][:summary]
+  hal  = report[:halstead][:summary]
   cov  = report[:test_coverage]
-  lint = report[:pylint][:summary]
-  sec  = report[:xenon]
+  lint = report[:lint][:summary]
+  sec  = report[:security]
 
   lines = []
   lines << "# Relatório de Métricas — #{report[:project]}"
   lines << ""
   lines << "Gerado em: `#{ts}`"
   lines << ""
-  lines << "## Complexidade (Flog)"
+  lines << "## 1. Complexidade Ciclomática McCabe (RuboCop)"
+  lines << ""
+  lines << "Mede caminhos independentes de execução por método (McCabe 1976)."
+  lines << "Referência: A ≤ 5 | B ≤ 10 | C ≤ 15 | D ≤ 20 | E ≤ 25 | F > 25"
   lines << ""
   lines << "| Métrica | Valor |"
   lines << "|---------|-------|"
-  lines << "| Média   | #{cc[:average]} |"
+  lines << "| Média   | **#{cc[:average]}** |"
   lines << "| Máximo  | #{cc[:max]} |"
   lines << "| Mínimo  | #{cc[:min]} |"
-  lines << "| Métodos | #{cc[:total_functions]} |"
-  lines << "| Grade   | #{cc[:grade]} |"
+  lines << "| Métodos analisados | #{cc[:total_functions]} |"
+  lines << "| Classificação | **#{cc[:grade]}** |"
   lines << ""
-  lines << "## Cobertura de Testes (SimpleCov)"
+  lines << "## 2. Índice de Manutenibilidade (MI)"
+  lines << ""
+  lines << "Fórmula: `171 - 5.2·ln(HalsteadVolume) - 0.23·CC - 16.2·ln(LOC)`. Escala 0–100."
   lines << ""
   lines << "| Métrica | Valor |"
   lines << "|---------|-------|"
-  lines << "| Total   | #{cov[:percent]}% |"
+  lines << "| Média   | **#{mi[:average]}** |"
+  lines << "| Mínimo  | #{mi[:min]} |"
+  lines << "| Máximo  | #{mi[:max]} |"
+  lines << "| Classificação | **#{mi[:grade]}** |"
+  lines << ""
+  lines << "## 3. Métricas de Halstead (Ripper)"
+  lines << ""
+  lines << "Derivadas de operadores/operandos via tokenização Ruby nativa."
+  lines << ""
+  lines << "| Métrica | Valor |"
+  lines << "|---------|-------|"
+  lines << "| Bugs estimados | **#{hal[:estimated_bugs]}** |"
+  lines << "| Esforço total  | #{hal[:total_effort]} |"
+  lines << "| Arquivos       | #{hal[:files_analyzed]} |"
+  lines << ""
+  lines << "## 4. Flog Score (code pain metric)"
+  lines << ""
+  lines << "> Flog não é Complexidade Ciclomática. Mede 'dor de código' (assignments, branches, calls)."
+  lines << "> Use para identificar métodos candidatos a refactoring, não como CC."
+  lines << ""
+  lines << "| Métrica | Valor |"
+  lines << "|---------|-------|"
+  lines << "| Média   | #{flog[:average]} |"
+  lines << "| Máximo  | #{flog[:max]} |"
+  lines << "| Mínimo  | #{flog[:min]} |"
+  lines << "| Métodos | #{flog[:total_functions]} |"
+  lines << "| Grade (Flog) | #{flog[:grade]} |"
+  lines << ""
+  lines << "## 5. Cobertura de Testes (SimpleCov)"
+  lines << ""
+  lines << "| Métrica | Valor |"
+  lines << "|---------|-------|"
+  lines << "| Total   | **#{cov[:percent]}%** |"
   lines << "| Cobertos| #{cov[:covered_lines]} |"
   lines << "| Faltando| #{cov[:missing_lines]} |"
-  lines << "| Total   | #{cov[:num_statements]} |"
+  lines << "| Statements | #{cov[:num_statements]} |"
   lines << ""
-  lines << "## Lint (RuboCop)"
+  lines << "## 6. Lint (RuboCop)"
   lines << ""
   lines << "| Métrica | Valor |"
   lines << "|---------|-------|"
@@ -359,7 +603,7 @@ def generate_markdown(report)
   lines << "| Score   | #{lint[:score]}/10 |"
   lines << "| Resumo  | #{lint[:score_line]} |"
   lines << ""
-  lines << "## Segurança (Brakeman + bundler-audit)"
+  lines << "## 7. Segurança (Brakeman + bundler-audit)"
   lines << ""
   lines << "| Métrica | Valor |"
   lines << "|---------|-------|"
@@ -393,8 +637,19 @@ def main
 
   puts "📊 Coletando métricas de #{ROOT}..."
 
-  puts_step "Analisando complexidade (Flog)"
-  cc_data = collect_flog
+  puts_step "Complexidade Ciclomática McCabe (RuboCop)"
+  cc_data = collect_rubocop_cc
+
+  puts_step "Flog Score (code pain metric)"
+  flog_data = collect_flog
+
+  puts_step "Métricas Halstead (Ripper)"
+  hal_data = collect_halstead_ripper
+
+  puts_step "Índice de Manutenibilidade (CC + Halstead + LOC)"
+  cc_per_file  = cc_data.dig(:summary, :per_file) || {}
+  hal_vol_file = hal_data[:per_file_volume] || {}
+  mi_data = compute_maintainability(cc_per_file, hal_vol_file)
 
   puts_step "Lendo cobertura de testes (SimpleCov)"
   coverage = collect_coverage
@@ -406,24 +661,13 @@ def main
   security = collect_security
 
   report = {
-    generated_at:            ts,
-    project:                 PROJECT,
-    cyclomatic_complexity:   cc_data,
-    maintainability_index: {
-      summary: {
-        average: 0, min: 0, max: 0,
-        grade:    "N/A",
-        per_file: {}
-      }
-    },
-    halstead: {
-      summary: {
-        estimated_bugs: 0,
-        total_effort:   0,
-        files_analyzed: 0
-      }
-    },
-    test_coverage: coverage,
+    generated_at:          ts,
+    project:               PROJECT,
+    cyclomatic_complexity: cc_data,
+    flog_score:            flog_data,
+    maintainability_index: mi_data,
+    halstead:              { summary: hal_data[:summary] },
+    test_coverage:         coverage,
     **lint,
     **security
   }
@@ -439,13 +683,15 @@ def main
   puts "✅ MD    → #{md_path}"
 
   cc_sum  = report[:cyclomatic_complexity][:summary]
+  mi_sum  = report[:maintainability_index][:summary]
   cov_sum = report[:test_coverage]
-  sec_sum = report[:xenon]
+  sec_sum = report[:security]
 
   puts "\n📋 Resumo:"
   puts "   CC avg:      #{cc_sum[:average]} (#{cc_sum[:grade]})"
+  puts "   MI avg:      #{mi_sum[:average]} (#{mi_sum[:grade]})"
   puts "   Cobertura:   #{cov_sum[:percent]}%"
-  puts "   Lint score:  #{report[:pylint][:summary][:score]}/10"
+  puts "   Lint score:  #{report[:lint][:summary][:score]}/10"
   puts "   Segurança:   #{sec_sum[:passed] ? "✅" : "❌"} #{sec_sum[:output]}"
 end
 

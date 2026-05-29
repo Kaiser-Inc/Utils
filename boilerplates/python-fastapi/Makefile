@@ -25,7 +25,7 @@ seed:
 	python scripts/seed.py
 
 metrics-install:
-	pip install -r requirements-metrics.txt
+	pip install -r scripts/requirements-metrics.txt
 
 metrics:
 	python scripts/metrics.py

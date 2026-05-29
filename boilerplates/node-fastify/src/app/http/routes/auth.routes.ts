@@ -20,7 +20,7 @@ import {
 const loginSchema = {
   tags: ["Auth"],
   summary: "Login — returns access token and sets refresh cookie",
-  security: [] as unknown[],
+  security: [] as { [securityLabel: string]: string[] }[],
   body: LoginBodySchema,
   response: { 200: AccessTokenSchema, 401: ErrorSchema },
 };
@@ -28,7 +28,7 @@ const loginSchema = {
 const registerSchema = {
   tags: ["Auth"],
   summary: "Register a new user",
-  security: [] as unknown[],
+  security: [] as { [securityLabel: string]: string[] }[],
   body: RegisterBodySchema,
   response: { 201: UserSchema, 409: ErrorSchema, 422: ErrorSchema },
 };
@@ -37,7 +37,7 @@ const refreshSchema = {
   tags: ["Auth"],
   summary: "Refresh access token using HTTP-only cookie",
   description: "Reads the `refresh_token` HTTP-only cookie. Rotates the token on each call.",
-  security: [] as unknown[],
+  security: [] as { [securityLabel: string]: string[] }[],
   response: { 200: AccessTokenSchema, 401: ErrorSchema },
 };
 
