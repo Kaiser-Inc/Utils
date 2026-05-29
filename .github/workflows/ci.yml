@@ -33,22 +33,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "9"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: boilerplates/node-fastify/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: boilerplates/node-fastify/pnpm-lock.yaml
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: Test
-        run: npm test
+        run: pnpm test
         env:
           NODE_ENV: test
           DB_HOST: localhost
@@ -60,7 +64,7 @@ jobs:
           REFRESH_TOKEN_SECRET: ci-test-refresh-secret-32-chars!!
 
       - name: Audit
-        run: npm audit --audit-level=high
+        run: pnpm audit --audit-level=high
 
   # ── Python/FastAPI ─────────────────────────────────────────────────────────
   python-fastapi:

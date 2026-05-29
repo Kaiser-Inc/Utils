@@ -361,10 +361,10 @@ def generate_xlsx(report: dict, path: Path) -> None:
     mi = report["maintainability_index"]["summary"]
     hal = report["halstead"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
-    xen = report["xenon"]
+    pyl = report["lint"]["summary"]
+    xen = report["security"]
     ruf = report.get("ruff", {}).get("summary", {})
-    sec = report.get("security", {})
+    sec = report.get("pip_audit", {})
 
     rows = [
         ("Gerado em", report["generated_at"]),
@@ -394,11 +394,11 @@ def generate_xlsx(report: dict, path: Path) -> None:
         ("Linhas faltando", cov.get("missing_lines")),
         ("Total statements", cov.get("num_statements")),
         ("", ""),
-        ("── Pylint ──", ""),
+        ("── Lint ──", ""),
         ("Score", pyl.get("score")),
         ("Total issues", pyl.get("total_issues")),
         ("", ""),
-        ("── Xenon ──", ""),
+        ("── Xenon Thresholds ──", ""),
         ("Resultado", "✅ Passou" if xen.get("passed") else "❌ Falhou"),
         ("Max absoluto", xen["thresholds"]["max_absolute"]),
         ("Max módulo", xen["thresholds"]["max_modules"]),
@@ -448,8 +448,8 @@ def generate_xlsx(report: dict, path: Path) -> None:
         fill = PASS_FILL if pct >= 80 else FAIL_FILL if pct < 50 else ALT_FILL
         ws4.cell(row=r, column=2).fill = fill
 
-    # ── Aba 5: Pylint issues ──────────────────────────────────────────────────
-    ws5 = wb.create_sheet("Pylint Issues")
+    # ── Aba 5: Lint issues ───────────────────────────────────────────────────
+    ws5 = wb.create_sheet("Lint Issues")
     by_type = pyl.get("by_type", {})
     write_table(ws5,
         ["Tipo", "Quantidade"],
@@ -467,7 +467,7 @@ def generate_xlsx(report: dict, path: Path) -> None:
 
     # ── Aba 7: Segurança ──────────────────────────────────────────────────────
     ws7 = wb.create_sheet("Segurança")
-    sec = report.get("security", {})
+    sec = report.get("pip_audit", {})
     sec_vulns = sec.get("vulnerabilities", [])
     if sec_vulns:
         write_table(ws7,
@@ -516,7 +516,7 @@ def generate_charts(report: dict, base: Path) -> dict[str, Path]:
     cc = report["cyclomatic_complexity"]["summary"]
     mi = report["maintainability_index"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
+    pyl = report["lint"]["summary"]
     paths: dict[str, Path] = {}
 
     # ── 1: Complexidade Ciclomática por arquivo ───────────────────────────────
@@ -661,10 +661,10 @@ def generate_html(report: dict, chart_paths: dict[str, Path], path: Path) -> Non
     mi = report["maintainability_index"]["summary"]
     hal = report["halstead"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
-    xen = report["xenon"]
+    pyl = report["lint"]["summary"]
+    xen = report["security"]
     ruf = report.get("ruff", {}).get("summary", {})
-    sec = report.get("security", {})
+    sec = report.get("pip_audit", {})
     ts = report["generated_at"]
 
     def kv_table(rows: list[tuple]) -> str:
@@ -852,10 +852,10 @@ def generate_markdown(report: dict) -> str:
     mi = report["maintainability_index"]["summary"]
     hal = report["halstead"]["summary"]
     cov = report["test_coverage"]
-    pyl = report["pylint"]["summary"]
-    xen = report["xenon"]
+    pyl = report["lint"]["summary"]
+    xen = report["security"]
     ruf = report.get("ruff", {}).get("summary", {})
-    sec = report.get("security", {})
+    sec = report.get("pip_audit", {})
 
     lines = [
         f"# Relatório de Métricas — {ts}",
@@ -915,7 +915,7 @@ def generate_markdown(report: dict) -> str:
         "",
         "---",
         "",
-        "## 5. Pylint",
+        "## 5. Lint (Pylint)",
         "",
         f"| Métrica | Valor |",
         f"|---------|-------|",
@@ -930,7 +930,7 @@ def generate_markdown(report: dict) -> str:
         "",
         "---",
         "",
-        "## 6. Xenon — Thresholds de Complexidade",
+        "## 6. Xenon Thresholds de Complexidade",
         "",
         f"| Threshold | Valor |",
         f"|-----------|-------|",
@@ -1049,7 +1049,7 @@ def main():
 
     report = {
         "generated_at": ts,
-        "project": "python-fastapi-boilerplate",
+        "project": "python-fastapi",
         "cyclomatic_complexity": {
             "raw": cc_raw,
             "summary": summarize_cc(cc_raw),
@@ -1062,17 +1062,17 @@ def main():
             "raw": hal_raw,
             "summary": summarize_hal(hal_raw),
         },
-        "pylint": {
+        "lint": {
             "raw": pylint_raw,
             "summary": summarize_pylint(pylint_raw),
         },
-        "xenon": xenon_data,
+        "security": xenon_data,
         "test_coverage": coverage_data,
         "ruff": {
             "raw": ruff_raw,
             "summary": ruff_summary,
         },
-        "security": security_data,
+        "pip_audit": security_data,
     }
 
     base = output_dir / f"report_{ts}"
@@ -1114,12 +1114,12 @@ def main():
     print(f"   MI média:        {mi_s.get('average', 'N/A')} ({mi_s.get('grade', '')})")
     print(f"   Cobertura:       {cov_s.get('percent', 'N/A')}%")
     print(f"   Xenon:           {'✅' if xenon_data.get('passed') else '❌'}")
-    print(f"   Pylint issues:   {report['pylint']['summary'].get('total_issues', 0)}")
-    pyl_score = report['pylint']['summary'].get('score')
+    print(f"   Pylint issues:   {report['lint']['summary'].get('total_issues', 0)}")
+    pyl_score = report['lint']['summary'].get('score')
     if pyl_score is not None:
         print(f"   Pylint score:    {pyl_score:.2f}/10")
     print(f"   Ruff issues:     {report['ruff']['summary'].get('total_issues', 'N/A')}")
-    sec = report['security']
+    sec = report.get('pip_audit', {})
     if 'passed' in sec:
         status = "✅ sem vulnerabilidades" if sec['passed'] else f"❌ {sec['total_vulnerabilities']} vulnerabilidade(s)"
         print(f"   Segurança:       {status}")

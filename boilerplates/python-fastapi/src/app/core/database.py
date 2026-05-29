@@ -3,6 +3,10 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.settings import settings
 
-engine = create_engine(settings.database_url, echo=True, future=True)
+engine = create_engine(
+    settings.database_url,
+    echo=settings.environment == "development",
+    future=True,
+)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)

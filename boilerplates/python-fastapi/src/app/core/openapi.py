@@ -23,7 +23,19 @@ def configure_openapi(app: FastAPI) -> None:
                 "bearerFormat": "JWT",
             }
         }
+
+        PUBLIC_PATHS = {
+            "/health",
+            "/auth/register",
+            "/auth/session",
+            "/auth/refresh",
+            "/docs",
+            "/openapi.json",
+        }
+
         for path in openapi_schema["paths"]:
+            if path in PUBLIC_PATHS:
+                continue
             for method in openapi_schema["paths"][path]:
                 openapi_schema["paths"][path][method]["security"] = [{"BearerAuth": []}]
 

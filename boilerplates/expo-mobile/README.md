@@ -188,3 +188,15 @@ EXPO_PUBLIC_BACKEND_URL=http://localhost:3000
 | Cobertura | ≥ 80% |
 | Lint | 0 erros (Biome) |
 | Segurança | 0 critical |
+
+## Gotchas / Convenções
+
+- **Package manager canônico: pnpm.** Lockfile único `pnpm-lock.yaml` — nunca commitar
+  `package-lock.json` nem `yarn.lock`.
+- **`@biomejs/biome` está em `devDependencies`** (lint/format).
+- **`.env`** nunca commitado — copie de `.env.example` (`EXPO_PUBLIC_BACKEND_URL`).
+  `coverage/` é gerado por teste e fica fora do git.
+- **`make metrics`** roda `jest --coverage --coverageReporters=json` antes de
+  `scripts/metrics.ts` para produzir o relatório no schema MetriK.
+- Em dispositivo físico, troque `localhost` pelo IP da máquina no
+  `EXPO_PUBLIC_BACKEND_URL`.

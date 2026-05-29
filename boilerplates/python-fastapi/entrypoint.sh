@@ -15,4 +15,4 @@ done
 echo "Postgres is up - executing command"
 
 alembic upgrade head
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+exec uvicorn main:app --host 0.0.0.0 --port 8000 --app-dir src

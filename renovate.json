@@ -28,6 +28,11 @@
       "matchPackageNames": ["node"],
       "matchManagers": ["nodenv", "nvm"],
       "enabled": false
+    },
+    {
+      "matchPackageNames": ["next-auth"],
+      "dependencyDashboardApproval": true,
+      "schedule": ["at any time"]
     }
   ]
 }

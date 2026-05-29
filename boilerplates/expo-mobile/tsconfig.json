@@ -3,11 +3,24 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] },
-    "lib": ["ES2022"],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "lib": [
+      "ES2022"
+    ],
     "target": "ES2022",
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src/**/*", "global.css"],
-  "exclude": ["node_modules", "scripts"]
+  "include": [
+    "src/**/*",
+    "global.css",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "scripts"
+  ]
 }

@@ -109,6 +109,21 @@ A skill suporta três modos:
 
 O Claude irá perguntar qual stack (python / node / rails), qual modo (lean / full / fullstack-monorepo) e o nome do projeto — e configurará tudo automaticamente.
 
+#### Métricas em um projeto existente — `/KaiserInc-SetupMetriK`
+
+Para instrumentar um projeto **já existente** (derivado destes boilerplates) com a tooling de
+exportação de métricas — e opcionalmente subir o dashboard **KaiserInc-MetriK** — use:
+
+```
+/KaiserInc-SetupMetriK
+```
+
+Essa skill **não** cria projeto (isso é `/KaiserInc-newProject`). Ela: detecta a stack,
+garante `scripts/metrics.*` + targets de Makefile + pasta `metrics/`, valida o relatório
+contra o schema do MetriK e — com seu consentimento — ou roda o MetriK **localmente via
+Docker** (apontado para a pasta `metrics/` do projeto) ou orienta o uso da **versão web
+publicada** (upload via file picker). Nunca edita o código do MetriK e nunca faz commit.
+
 ---
 
 ## Princípios
@@ -159,3 +174,17 @@ make test     # roda suite completa de testes
 make load-test # executa k6 / Locust
 make metrics  # coleta CC/MI/Halstead/cobertura/segurança e gera relatório
 ```
+
+### Dashboard de métricas — KaiserInc-MetriK
+
+`make metrics` gera `metrics/report_YYYY-MM-DD_HHMMSS.json` no schema consumido pelo
+**KaiserInc-MetriK** (`~/KaiserInc/KaiserInc-MetriKa/`), um dashboard Next.js que lê esses
+relatórios. Dois modos de visualização:
+
+- **Local (Docker)** — roda o MetriK na sua máquina com a pasta `metrics/` do projeto
+  montada (`METRICS_DIR=/metrics`); leitura direta, sem upload.
+- **Web (deploy)** — usa a versão publicada; faça upload dos `report_*.json` pelo
+  file/directory picker (parse no browser).
+
+A skill `/KaiserInc-SetupMetriK` automatiza ambos os caminhos (detecção de stack, checagem
+de compatibilidade de schema e gate de consentimento antes de qualquer alteração).

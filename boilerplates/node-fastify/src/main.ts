@@ -2,6 +2,7 @@ import { setupTelemetry } from "./app/core/telemetry.js";
 
 setupTelemetry();
 
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { db, pool } from "./app/core/database.js";
 import { createServer } from "./app/core/server.js";
 import { settings } from "./app/core/settings.js";
@@ -9,6 +10,8 @@ import { DrizzleRefreshTokenRepository } from "./app/repositories/drizzle/drizzl
 import { DrizzleUserRepository } from "./app/repositories/drizzle/drizzle-user-repository.js";
 
 async function bootstrap(): Promise<void> {
+  await migrate(db, { migrationsFolder: "./drizzle/migrations" });
+
   const userRepo = new DrizzleUserRepository(db);
   const refreshTokenRepo = new DrizzleRefreshTokenRepository(db);
 
