@@ -42,6 +42,7 @@ make generate   # Gerar arquivos de migration
 make seed       # Popular banco com dados de dev
 make audit      # Checar vulnerabilidades (npm audit --audit-level=high)
 make load-test  # Rodar k6 via Docker
+make metrics    # Coletar métricas e gerar relatório
 ```
 
 ## Dados de desenvolvimento
@@ -156,6 +157,25 @@ k6 run -e BASE_URL=http://seu-host:3000 load-tests/k6/auth.js
 | `http_req_failed` | < 1% |
 | Taxa `auth_flow_success` | > 99% |
 
+## Métricas de Qualidade
+
+```bash
+make metrics
+```
+
+Gera relatórios em `metrics/` (JSON + Markdown). Requer `npm run test:coverage` para cobertura.
+
+| Ferramenta | Métrica | Referência |
+|------------|---------|------------|
+| TypeScript-ESTree (AST) | Complexidade Ciclomática McCabe | McCabe, 1976 |
+| AST (Halstead) | Halstead (volume, esforço, bugs estimados) | Halstead, 1977 |
+| Fórmula MI | Índice de Manutenibilidade (0–100) | Oman & Hagemeister, 1992 |
+| Biome | Score de lint (0–10) + issues | — |
+| Vitest + V8 | Cobertura reportada + cobertura real (c/ exclusões documentadas) | — |
+| npm audit | Vulnerabilidades de segurança | — |
+
+> A cobertura reportada exclui arquivos de infraestrutura sem lógica testável (`main.ts`, `telemetry.ts`, `database.ts`, repositórios Drizzle). O relatório exibe ambos os valores: `reported_coverage` e `real_coverage`.
+
 ## Variáveis de ambiente
 
 Copie `.env.example` e ajuste:
@@ -164,8 +184,8 @@ Copie `.env.example` e ajuste:
 DB_HOST=db
 DB_PORT=5432
 DB_NAME=boilerplate
-DB_USER=docker
-DB_PASSWORD=docker
+DB_USER=postgres
+DB_PASSWORD=postgres
 SECRET_KEY=your-32-char-secret-key-here-xxxx
 REFRESH_TOKEN_SECRET=your-32-char-refresh-secret-here-x
 PORT=3000

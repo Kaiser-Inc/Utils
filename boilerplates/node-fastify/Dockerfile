@@ -1,5 +1,5 @@
 # ── Stage 1: base ─────────────────────────────────────────────────────────────
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 ENV NODE_ENV=production
 

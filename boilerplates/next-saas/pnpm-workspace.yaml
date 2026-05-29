@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@kaiserinc/react@0.2.1': patches/@kaiserinc__react@0.2.1.patch

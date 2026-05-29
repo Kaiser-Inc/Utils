@@ -358,16 +358,31 @@ function collectComplexity() {
 
 // ─── Collect Coverage ─────────────────────────────────────────────────────────
 
+/**
+ * Files excluded from vitest coverage (see vitest.config.ts coverage.exclude).
+ * These are infrastructure files with no testable business logic.
+ * We document them explicitly so the reported % is understood as intentional.
+ */
+const COVERAGE_EXCLUDED = [
+  "src/main.ts",
+  "src/app/core/telemetry.ts",
+  "src/app/core/database.ts",
+  "src/app/repositories/drizzle",
+];
+
 function collectCoverage() {
   const coverageFile = join(ROOT, "coverage", "coverage-final.json");
   if (!existsSync(coverageFile)) {
     return {
       error: "coverage/coverage-final.json não encontrado — execute `npm run test:coverage` primeiro",
       percent: 0,
+      reported_coverage: 0,
       covered_lines: 0,
       missing_lines: 0,
       num_statements: 0,
       by_file: {} as Record<string, number>,
+      excluded_files: COVERAGE_EXCLUDED,
+      excluded_note: "Arquivos de infraestrutura sem lógica testável",
     };
   }
 
@@ -380,6 +395,7 @@ function collectCoverage() {
   let totalStatements = 0;
   let coveredStatements = 0;
 
+  // Covered files (those included in vitest coverage report)
   for (const [absPath, fileData] of Object.entries(data)) {
     const relPath = relative(ROOT, absPath);
     const stmts = fileData.s ?? {};
@@ -390,9 +406,47 @@ function collectCoverage() {
     byFile[relPath] = total > 0 ? Number(((covered / total) * 100).toFixed(2)) : 100;
   }
 
-  const percent = totalStatements > 0
+  const reportedCoverage = totalStatements > 0
     ? Number(((coveredStatements / totalStatements) * 100).toFixed(2))
     : 0;
+
+  // Count statements in excluded files to compute real coverage
+  let excludedStatements = 0;
+  for (const file of findTsFiles(SRC)) {
+    const relPath = relative(ROOT, file);
+    const isExcluded = COVERAGE_EXCLUDED.some((excl) => relPath.startsWith(excl));
+    if (isExcluded) {
+      try {
+        const source = readFileSync(file, "utf8");
+        const ast = parse(source, { loc: false, range: false, jsx: false, errorOnUnknownASTType: false });
+        // Rough statement count: count top-level statement-like nodes via AST
+        function countStmts(node: unknown): number {
+          if (!node || typeof node !== "object") return 0;
+          const n = node as Record<string, unknown>;
+          let c = 0;
+          const STMT_TYPES = new Set([
+            "ExpressionStatement", "VariableDeclaration", "ReturnStatement",
+            "IfStatement", "ThrowStatement", "TryStatement", "ForStatement",
+            "ForInStatement", "ForOfStatement", "WhileStatement", "DoWhileStatement",
+          ]);
+          if (STMT_TYPES.has(n.type as string)) c = 1;
+          for (const val of Object.values(n)) {
+            if (Array.isArray(val)) for (const child of val) c += countStmts(child);
+            else if (val && typeof val === "object") c += countStmts(val);
+          }
+          return c;
+        }
+        excludedStatements += countStmts(ast);
+      } catch {
+        excludedStatements += 10; // conservative estimate if unparseable
+      }
+    }
+  }
+
+  const realTotal = totalStatements + excludedStatements;
+  const realCoverage = realTotal > 0
+    ? Number(((coveredStatements / realTotal) * 100).toFixed(2))
+    : reportedCoverage;
 
   // Parse test counts from vitest JSON reporter
   let testsPassed = 0;
@@ -409,18 +463,24 @@ function collectCoverage() {
     testsFailed = vj.numFailedTests ?? 0;
     testsTotal = vj.numTotalTests ?? (testsPassed + testsFailed);
   } catch {
-    // fallback: parse text output "X passed"
     const m = vitestResult.stdout.match(/(\d+)\s+passed/);
     if (m) testsPassed = Number(m[1]);
     testsTotal = testsPassed;
   }
 
   return {
-    percent,
+    // reported_coverage: coverage % considering only included files (vitest config)
+    reported_coverage: reportedCoverage,
+    // real_coverage: coverage % including excluded infrastructure files (always 0% for them)
+    real_coverage: realCoverage,
+    percent: reportedCoverage, // kept for backwards compat with existing report consumers
     covered_lines: coveredStatements,
     missing_lines: totalStatements - coveredStatements,
     num_statements: totalStatements,
+    excluded_statements_estimate: excludedStatements,
     by_file: byFile,
+    excluded_files: COVERAGE_EXCLUDED,
+    excluded_note: "Arquivos de infraestrutura excluídos propositalmente (sem lógica testável)",
     tests_passed: testsPassed,
     tests_failed: testsFailed,
     tests_total: testsTotal,
@@ -591,12 +651,21 @@ function generateMarkdown(report: Record<string, unknown>): string {
     ``,
     `## Cobertura de Testes`,
     ``,
+    `> **Nota:** \`reported_coverage\` considera apenas arquivos incluídos no vitest (exclui infra).`,
+    `> \`real_coverage\` inclui estimativa dos arquivos de infraestrutura (sempre 0% cobertos).`,
+    ``,
     `| Métrica | Valor |`,
     `|---------|-------|`,
-    `| Total   | ${cov.percent}% |`,
-    `| Cobertos| ${cov.covered_lines} |`,
-    `| Faltando| ${cov.missing_lines} |`,
-    `| Total stmts | ${cov.num_statements} |`,
+    `| Cobertura reportada | ${(cov as Record<string, unknown>).reported_coverage ?? cov.percent}% |`,
+    `| Cobertura real (c/ infra) | ${(cov as Record<string, unknown>).real_coverage ?? "N/A"}% |`,
+    `| Linhas cobertas | ${cov.covered_lines} |`,
+    `| Linhas faltando | ${cov.missing_lines} |`,
+    `| Total stmts (incluídos) | ${cov.num_statements} |`,
+    `| Stmts excluídos (estimativa) | ${(cov as Record<string, unknown>).excluded_statements_estimate ?? "N/A"} |`,
+    ``,
+    `**Arquivos excluídos da cobertura:**`,
+    ``,
+    ...((cov as Record<string, unknown>).excluded_files as string[] ?? []).map((f) => `- \`${f}\``),
     ``,
     `## Lint (Biome)`,
     ``,
@@ -683,11 +752,13 @@ function main() {
   const sec = report.xenon;
 
   console.log(`\n📋 Resumo:`);
-  console.log(`   CC avg:      ${cc.average} (${cc.grade})`);
-  console.log(`   MI avg:      ${report.maintainability_index.summary.average}`);
-  console.log(`   Cobertura:   ${(cov as { percent: number }).percent}%`);
-  console.log(`   Lint score:  ${report.pylint.summary.score}/10`);
-  console.log(`   Segurança:   ${sec.passed ? "✅" : "❌"} ${sec.output}`);
+  const covTyped = cov as { percent: number; reported_coverage?: number; real_coverage?: number };
+  console.log(`   CC avg:           ${cc.average} (${cc.grade})`);
+  console.log(`   MI avg:           ${report.maintainability_index.summary.average}`);
+  console.log(`   Cobertura:        ${covTyped.reported_coverage ?? covTyped.percent}% (reportada)`);
+  console.log(`   Cobertura real:   ${covTyped.real_coverage ?? "N/A"}% (com infra excluída)`);
+  console.log(`   Lint score:       ${report.pylint.summary.score}/10`);
+  console.log(`   Segurança:        ${sec.passed ? "✅" : "❌"} ${sec.output}`);
 }
 
 main();

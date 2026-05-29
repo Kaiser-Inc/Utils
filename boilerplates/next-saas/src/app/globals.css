@@ -1,0 +1,693 @@
+@import "tailwindcss";
+@source "../../node_modules/@kaiserinc/react/dist/index.mjs";
+
+/* ─────────────────────────────────────────────────────────────────────────
+   KaiserInc Design Tokens — inline de @kaiserinc/tokens
+   Dark-first: :root define dark. [data-theme="light"] sobrescreve para light.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Brand Purple ── */
+  --purple-50: #f1ebff;
+  --purple-100: #e0d2ff;
+  --purple-200: #c4acff;
+  --purple-300: #a78bfa;
+  --purple-400: #996dff;
+  --purple-500: #8257e6;
+  --purple-600: #6938ee;
+  --purple-700: #5a3fbe;
+  --purple-800: #402090;
+  --purple-900: #2a1466;
+
+  /* ── Neutral Gray ── */
+  --gray-50: #fafafc;
+  --gray-100: #e1e1e6;
+  --gray-200: #c4c4cc;
+  --gray-300: #8d8d99;
+  --gray-400: #7c7c8a;
+  --gray-500: #505059;
+  --gray-600: #323238;
+  --gray-700: #29292e;
+  --gray-800: #202024;
+  --gray-900: #121214;
+  --gray-950: #09090a;
+
+  /* ── Status ── */
+  --success-300: #04d361;
+  --success-500: #00b37e;
+  --warning-300: #ffca80;
+  --warning-500: #fba94c;
+  --danger-300: #fba1a8;
+  --danger-500: #f75a68;
+
+  /* ── Semantic Foreground (dark default) ── */
+  --fg-1: var(--gray-50);
+  --fg-2: var(--gray-100);
+  --fg-3: var(--gray-300);
+  --fg-4: var(--gray-400);
+  --fg-5: var(--gray-500);
+
+  /* ── Semantic Background (dark default) ── */
+  --bg-base: var(--gray-950);
+  --bg-surface: var(--gray-900);
+  --bg-elevated: var(--gray-800);
+
+  /* ── Semantic Border (dark default) ── */
+  --border-subtle: var(--gray-800);
+  --border-default: var(--gray-700);
+  --border-strong: var(--gray-500);
+
+  /* ── Brand ── */
+  --brand: var(--purple-500);
+  --brand-hover: var(--purple-400);
+  --brand-active: var(--purple-600);
+  --brand-subtle: rgba(130, 87, 230, 0.12);
+  --brand-muted: rgba(130, 87, 230, 0.25);
+
+  /* ── Border Radius ── */
+  --radius-none: 0px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-pill: 999px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 0 0 4px rgba(130, 87, 230, 0.25);
+  --shadow-focus: 0 0 0 3px rgba(130, 87, 230, 0.4);
+
+  /* ── Motion ── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-slower: 500ms;
+}
+
+/* Light theme override */
+[data-theme="light"] {
+  --fg-1: var(--gray-950);
+  --fg-2: var(--gray-900);
+  --fg-3: var(--gray-600);
+  --fg-4: var(--gray-500);
+  --fg-5: var(--gray-400);
+
+  --bg-base: var(--gray-50);
+  --bg-surface: #ffffff;
+  --bg-elevated: var(--gray-100);
+
+  --border-subtle: var(--gray-200);
+  --border-default: var(--gray-300);
+  --border-strong: var(--gray-400);
+
+  --shadow-xs: 0 1px 2px rgba(18, 18, 20, 0.06);
+  --shadow-sm: 0 1px 4px rgba(18, 18, 20, 0.08);
+  --shadow-md: 0 4px 12px rgba(18, 18, 20, 0.1);
+  --shadow-lg: 0 8px 24px rgba(18, 18, 20, 0.14);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Tailwind v4 @theme — KaiserInc native + shadcn-compat aliases
+   ───────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ── Fonts ── */
+  --font-sans: "Roboto", "Roboto Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Roboto Mono", "Cascadia Code", "Fira Code", monospace;
+
+  /* ── Purple scale → Tailwind utilities: text-purple-500, bg-purple-800 etc. ── */
+  --color-purple-50: #f1ebff;
+  --color-purple-100: #e0d2ff;
+  --color-purple-200: #c4acff;
+  --color-purple-300: #a78bfa;
+  --color-purple-400: #996dff;
+  --color-purple-500: #8257e6;
+  --color-purple-600: #6938ee;
+  --color-purple-700: #5a3fbe;
+  --color-purple-800: #402090;
+  --color-purple-900: #2a1466;
+
+  /* ── Gray scale → Tailwind utilities: text-gray-950 etc. ── */
+  --color-gray-50: #fafafc;
+  --color-gray-100: #e1e1e6;
+  --color-gray-200: #c4c4cc;
+  --color-gray-300: #8d8d99;
+  --color-gray-400: #7c7c8a;
+  --color-gray-500: #505059;
+  --color-gray-600: #323238;
+  --color-gray-700: #29292e;
+  --color-gray-800: #202024;
+  --color-gray-900: #121214;
+  --color-gray-950: #09090a;
+
+  /* ── Status scale ── */
+  --color-success-300: #04d361;
+  --color-success-500: #00b37e;
+  --color-warning-300: #ffca80;
+  --color-warning-500: #fba94c;
+  --color-danger-300: #fba1a8;
+  --color-danger-500: #f75a68;
+
+  /* ── KaiserInc semantic → Tailwind utilities: bg-fg-1, text-brand etc. ── */
+  --color-fg-1: var(--fg-1);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-fg-4: var(--fg-4);
+  --color-fg-5: var(--fg-5);
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-muted: var(--brand-muted);
+
+  /* ── Shadcn-compat aliases (componentes existentes: bg-primary, text-muted-foreground etc.) ── */
+  --color-primary: var(--brand);
+  --color-primary-foreground: #ffffff;
+  --color-background: var(--bg-base);
+  --color-foreground: var(--fg-1);
+  --color-card: var(--bg-surface);
+  --color-card-foreground: var(--fg-1);
+  --color-muted: var(--bg-elevated);
+  --color-muted-foreground: var(--fg-4);
+  --color-border: var(--border-subtle);
+  --color-destructive: var(--danger-500);
+  --color-destructive-foreground: #ffffff;
+  --color-secondary: var(--success-500);
+  --color-secondary-foreground: var(--gray-950);
+  --color-success: var(--success-300);
+  --color-success-foreground: var(--gray-950);
+  --color-warning: var(--warning-500);
+  --color-warning-foreground: var(--gray-950);
+
+  /* ── Border Radius ── */
+  --radius-none: 0px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-pill: 999px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 0 0 4px rgba(130, 87, 230, 0.25);
+  --shadow-focus: 0 0 0 3px rgba(130, 87, 230, 0.4);
+
+  /* ── Motion ── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-slower: 500ms;
+
+  /* ── Animations ── */
+  --animate-fade-in: fade-in 200ms var(--ease-out) forwards;
+  --animate-slide-up: slide-up 280ms var(--ease-out) forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Keyframes
+   ───────────────────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Base layer
+   ───────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  * {
+    border-color: var(--border-subtle);
+    transition:
+      color var(--duration-base) var(--ease-out),
+      background-color var(--duration-base) var(--ease-out),
+      border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--fg-2);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  ::selection {
+    background: var(--brand-muted);
+    color: var(--fg-1);
+  }
+
+  /* ThemeProvider renders <div data-theme="dark"> — ensure it fills viewport with correct bg */
+  [data-theme] {
+    background-color: var(--bg-base);
+    min-height: 100svh;
+  }
+
+  /* KaiserInc Button has no cursor-pointer in base — add globally for all non-disabled buttons */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   @kaiserinc/react CSS bridge
+   @kaiserinc/react uses arbitrary-value Tailwind syntax (bg-[var(--brand)]).
+   Tailwind v4's scanner doesn't extract those from node_modules.
+   These explicit rules ensure the classes exist in the CSS output.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  /* ── Backgrounds ── */
+  .bg-\[var\(--brand\)\] {
+    background-color: var(--brand);
+  }
+  .bg-\[var\(--brand-hover\)\] {
+    background-color: var(--brand-hover);
+  }
+  .bg-\[var\(--brand-active\)\] {
+    background-color: var(--brand-active);
+  }
+  .bg-\[var\(--brand-subtle\)\] {
+    background-color: var(--brand-subtle);
+  }
+  .bg-\[var\(--bg-base\)\] {
+    background-color: var(--bg-base);
+  }
+  .bg-\[var\(--bg-surface\)\] {
+    background-color: var(--bg-surface);
+  }
+  .bg-\[var\(--bg-elevated\)\] {
+    background-color: var(--bg-elevated);
+  }
+  .bg-\[var\(--border-default\)\] {
+    background-color: var(--border-default);
+  }
+  .bg-\[var\(--border-subtle\)\] {
+    background-color: var(--border-subtle);
+  }
+  .bg-\[var\(--danger-500\)\] {
+    background-color: var(--danger-500);
+  }
+  .bg-\[var\(--success-500\)\] {
+    background-color: var(--success-500);
+  }
+  .bg-\[var\(--warning-500\)\] {
+    background-color: var(--warning-500);
+  }
+  .bg-\[var\(--fg-3\)\] {
+    background-color: var(--fg-3);
+  }
+  .bg-\[rgba\(0\,179\,126\,0\.08\)\] {
+    background-color: rgba(0, 179, 126, 0.08);
+  }
+  .bg-\[rgba\(0\,179\,126\,0\.12\)\] {
+    background-color: rgba(0, 179, 126, 0.12);
+  }
+  .bg-\[rgba\(247\,90\,104\,0\.08\)\] {
+    background-color: rgba(247, 90, 104, 0.08);
+  }
+  .bg-\[rgba\(247\,90\,104\,0\.12\)\] {
+    background-color: rgba(247, 90, 104, 0.12);
+  }
+  .bg-\[rgba\(251\,169\,76\,0\.08\)\] {
+    background-color: rgba(251, 169, 76, 0.08);
+  }
+  .bg-\[rgba\(251\,169\,76\,0\.12\)\] {
+    background-color: rgba(251, 169, 76, 0.12);
+  }
+  .bg-\[rgba\(130\,87\,230\,0\.12\)\] {
+    background-color: rgba(130, 87, 230, 0.12);
+  }
+
+  /* ── Text colors ── */
+  .text-\[var\(--fg-1\)\] {
+    color: var(--fg-1);
+  }
+  .text-\[var\(--fg-2\)\] {
+    color: var(--fg-2);
+  }
+  .text-\[var\(--fg-3\)\] {
+    color: var(--fg-3);
+  }
+  .text-\[var\(--fg-4\)\] {
+    color: var(--fg-4);
+  }
+  .text-\[var\(--fg-5\)\] {
+    color: var(--fg-5);
+  }
+  .text-\[var\(--brand\)\] {
+    color: var(--brand);
+  }
+  .text-\[var\(--danger-500\)\] {
+    color: var(--danger-500);
+  }
+  .text-\[var\(--success-500\)\] {
+    color: var(--success-500);
+  }
+  .text-\[var\(--warning-500\)\] {
+    color: var(--warning-500);
+  }
+
+  /* ── Borders ── */
+  .border-\[var\(--border-default\)\] {
+    border-color: var(--border-default);
+  }
+  .border-\[var\(--border-subtle\)\] {
+    border-color: var(--border-subtle);
+  }
+  .border-\[var\(--border-strong\)\] {
+    border-color: var(--border-strong);
+  }
+  .border-\[var\(--brand\)\] {
+    border-color: var(--brand);
+  }
+  .border-\[var\(--brand-muted\)\] {
+    border-color: var(--brand-muted);
+  }
+  .border-\[var\(--danger-500\)\] {
+    border-color: var(--danger-500);
+  }
+  .border-\[var\(--success-500\)\] {
+    border-color: var(--success-500);
+  }
+  .border-\[var\(--warning-500\)\] {
+    border-color: var(--warning-500);
+  }
+  .border-l-\[var\(--brand\)\] {
+    border-left-color: var(--brand);
+  }
+  .border-l-\[var\(--danger-500\)\] {
+    border-left-color: var(--danger-500);
+  }
+  .border-l-\[var\(--success-500\)\] {
+    border-left-color: var(--success-500);
+  }
+  .border-l-\[var\(--warning-500\)\] {
+    border-left-color: var(--warning-500);
+  }
+  .border-\[rgba\(0\,179\,126\,0\.3\)\] {
+    border-color: rgba(0, 179, 126, 0.3);
+  }
+  .border-\[rgba\(247\,90\,104\,0\.3\)\] {
+    border-color: rgba(247, 90, 104, 0.3);
+  }
+  .border-\[rgba\(251\,169\,76\,0\.3\)\] {
+    border-color: rgba(251, 169, 76, 0.3);
+  }
+
+  /* ── Border radius ── */
+  .rounded-\[var\(--radius-sm\)\] {
+    border-radius: var(--radius-sm);
+  }
+  .rounded-\[var\(--radius-md\)\] {
+    border-radius: var(--radius-md);
+  }
+  .rounded-\[var\(--radius-lg\)\] {
+    border-radius: var(--radius-lg);
+  }
+  .rounded-\[var\(--radius-xl\)\] {
+    border-radius: var(--radius-xl);
+  }
+  .rounded-\[var\(--radius-2xl\)\] {
+    border-radius: var(--radius-2xl);
+  }
+  .rounded-\[var\(--radius-pill\)\] {
+    border-radius: var(--radius-pill);
+  }
+
+  /* ── Shadows ── */
+  .shadow-\[var\(--shadow-xs\)\] {
+    box-shadow: var(--shadow-xs);
+  }
+  .shadow-\[var\(--shadow-sm\)\] {
+    box-shadow: var(--shadow-sm);
+  }
+  .shadow-\[var\(--shadow-md\)\] {
+    box-shadow: var(--shadow-md);
+  }
+  .shadow-\[var\(--shadow-lg\)\] {
+    box-shadow: var(--shadow-lg);
+  }
+  .shadow-\[var\(--shadow-focus\)\] {
+    box-shadow: var(--shadow-focus);
+  }
+  .shadow-\[var\(--shadow-glow\)\] {
+    box-shadow: var(--shadow-glow);
+  }
+  .focus\:shadow-\[var\(--shadow-focus\)\]:focus {
+    box-shadow: var(--shadow-focus);
+  }
+  .focus-visible\:shadow-\[var\(--shadow-focus\)\]:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+  .focus\:shadow-\[0_0_0_3px_rgba\(247\,90\,104\,0\.4\)\]:focus {
+    box-shadow: 0 0 0 3px rgba(247, 90, 104, 0.4);
+  }
+
+  /* ── Transitions / durations ── */
+  .duration-\[var\(--duration-base\)\] {
+    transition-duration: var(--duration-base);
+  }
+  .duration-\[var\(--duration-fast\)\] {
+    transition-duration: var(--duration-fast);
+  }
+  .ease-\[var\(--ease-out\)\] {
+    transition-timing-function: var(--ease-out);
+  }
+  .ease-\[var\(--ease-in-out\)\] {
+    transition-timing-function: var(--ease-in-out);
+  }
+
+  /* ── Placeholder ── */
+  .placeholder\:text-\[var\(--fg-5\)\]::placeholder {
+    color: var(--fg-5);
+  }
+  .placeholder\:text-\[var\(--fg-4\)\]::placeholder {
+    color: var(--fg-4);
+  }
+
+  /* ── Hover/active/focus variants ── */
+  .hover\:bg-\[var\(--brand-hover\)\]:hover {
+    background-color: var(--brand-hover);
+  }
+  .hover\:bg-\[var\(--brand-subtle\)\]:hover {
+    background-color: var(--brand-subtle);
+  }
+  .hover\:bg-\[var\(--bg-elevated\)\]:hover {
+    background-color: var(--bg-elevated);
+  }
+  .hover\:bg-\[var\(--danger-500\)\]:hover {
+    background-color: var(--danger-500);
+  }
+  .hover\:text-\[var\(--fg-1\)\]:hover {
+    color: var(--fg-1);
+  }
+  .hover\:text-\[var\(--fg-2\)\]:hover {
+    color: var(--fg-2);
+  }
+  .hover\:border-\[var\(--border-default\)\]:hover {
+    border-color: var(--border-default);
+  }
+  .hover\:border-\[var\(--border-strong\)\]:hover {
+    border-color: var(--border-strong);
+  }
+  .active\:bg-\[var\(--brand-active\)\]:active {
+    background-color: var(--brand-active);
+  }
+  .focus\:border-\[var\(--brand\)\]:focus {
+    border-color: var(--brand);
+  }
+  .focus\:bg-\[var\(--bg-elevated\)\]:focus {
+    background-color: var(--bg-elevated);
+  }
+  .focus\:outline-none:focus {
+    outline: none;
+  }
+  .focus-visible\:outline-none:focus-visible {
+    outline: none;
+  }
+  .focus-visible\:shadow-\[var\(--shadow-focus\)\]:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+
+  /* ── After pseudo (tab indicator) ── */
+  .after\:bg-\[var\(--brand\)\]::after {
+    background-color: var(--brand);
+  }
+
+  /* ── Divide ── */
+  .divide-\[var\(--border-subtle\)\] > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--border-subtle);
+  }
+
+  /* ── Min-width arbitrary ── */
+  .min-w-\[180px\] {
+    min-width: 180px;
+  }
+  .min-w-\[200px\] {
+    min-width: 200px;
+  }
+  .min-w-\[80px\] {
+    min-width: 80px;
+  }
+  .min-h-\[80px\] {
+    min-height: 80px;
+  }
+  .max-h-\[50vh\] {
+    max-height: 50vh;
+  }
+  .max-h-60 {
+    max-height: 15rem;
+  }
+  .max-h-\[90vh\] {
+    max-height: 90vh;
+  }
+
+  /* ── Animate shimmer ── */
+  .animate-\[shimmer_1\.5s_infinite\] {
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* ── Backdrop ── */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── Gradient (skeleton shimmer) ── */
+  .from-transparent {
+    --tw-gradient-from: transparent;
+  }
+  .via-white\/5 {
+    --tw-gradient-via: rgba(255, 255, 255, 0.05);
+  }
+  .to-transparent {
+    --tw-gradient-to: transparent;
+  }
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 0.15s ease-out forwards;
+}
+
+/* ── Sidebar slide ── */
+.sidebar-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  transition: grid-template-columns 0.22s ease;
+  overflow: hidden;
+}
+
+.sidebar-wrapper[data-open="false"] {
+  grid-template-columns: 0fr;
+}
+
+.sidebar-wrapper[data-open="true"] {
+  grid-template-columns: 1fr;
+}
+
+.sidebar-inner {
+  overflow: hidden;
+  min-width: 0;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out forwards;
+}

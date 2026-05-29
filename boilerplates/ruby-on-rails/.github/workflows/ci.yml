@@ -29,11 +29,11 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_DB: boilerplate_test
-          POSTGRES_USER: docker
-          POSTGRES_PASSWORD: docker
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
@@ -44,9 +44,9 @@ jobs:
 
     env:
       RAILS_ENV: test
-      DATABASE_URL: postgresql://docker:docker@localhost:5432/boilerplate_test
-      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/boilerplate_test
       SECRET_KEY_BASE: ci-secret-key-base-for-testing-only
+      SECRET_KEY: ci-test-secret-key-32-chars-long!!
       OTLP_ENDPOINT: ""
 
     steps:

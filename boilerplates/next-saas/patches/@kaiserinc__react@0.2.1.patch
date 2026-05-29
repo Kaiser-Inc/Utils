@@ -1,0 +1,34 @@
+diff --git a/dist/index.js b/dist/index.js
+index 30b96302efe25df9a9e2837027b25f120660c17b..9937f04fe5d73bf0c9425293f8576ad09b007810 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -29,9 +29,9 @@ function useDisclosure(initial = false) {
+   return { isOpen, open, close, toggle, onOpenChange };
+ }
+ var variantSrc = {
+-  default: new URL("../../assets/logo-kaiser-transparent.png", (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href))).href,
+-  light: new URL("../../assets/logo-kaiser-light.png", (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href))).href,
+-  square: new URL("../../assets/logo-kaiser-square.png", (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href))).href
++  default: new URL("./logo-kaiser-transparent.png", (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href))).href,
++  light: new URL("./logo-kaiser-light.png", (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href))).href,
++  square: new URL("./logo-kaiser-square.png", (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href))).href
+ };
+ var sizeMap = {
+   xs: { wordmark: "h-5", square: "h-5 w-5" },
+diff --git a/dist/index.mjs b/dist/index.mjs
+index b72892978f826c68a7ddd104802d2eb69520bbcd..3b0c0f0ae438c1d4b528536d691f3489283efc35 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -27,9 +27,9 @@ function useDisclosure(initial = false) {
+   return { isOpen, open, close, toggle, onOpenChange };
+ }
+ var variantSrc = {
+-  default: new URL("../../assets/logo-kaiser-transparent.png", import.meta.url).href,
+-  light: new URL("../../assets/logo-kaiser-light.png", import.meta.url).href,
+-  square: new URL("../../assets/logo-kaiser-square.png", import.meta.url).href
++  default: new URL("./logo-kaiser-transparent.png", import.meta.url).href,
++  light: new URL("./logo-kaiser-light.png", import.meta.url).href,
++  square: new URL("./logo-kaiser-square.png", import.meta.url).href
+ };
+ var sizeMap = {
+   xs: { wordmark: "h-5", square: "h-5 w-5" },
