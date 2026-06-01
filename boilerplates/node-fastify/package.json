@@ -41,11 +41,12 @@
     "@types/pg": "^8.11.10",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/typescript-estree": "^8.59.3",
-    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/coverage-v8": "^4.1.8",
     "drizzle-kit": "^0.31.10",
     "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vite": "^7.0.0",
+    "vitest": "^4.1.8"
   }
 }

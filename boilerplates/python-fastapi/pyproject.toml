@@ -28,3 +28,9 @@ disable = [
     "R0903",  # too-few-public-methods  (service/model classes — single responsibility by design)
     "R0801",  # duplicate-code          (clean architecture generates structural duplicates)
 ]
+
+[tool.coverage.report]
+# Corpos de métodos abstratos nunca executam — não são código testável.
+exclude_also = [
+    "@(abc\\.)?abstractmethod",
+]

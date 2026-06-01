@@ -11,7 +11,6 @@ from app.http.controllers.users.router import router as users_router
 
 
 def create_app(testing: bool = False) -> FastAPI:
-    # Desativa a UI padrão do FastAPI — Scalar serve como única interface de docs
     app = FastAPI(
         title="Boilerplate",
         docs_url=None,

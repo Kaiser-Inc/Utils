@@ -24,8 +24,15 @@ audit:
 seed:
 	python scripts/seed.py
 
+# Usa o interpretador do venv para que pylint/radon/pytest enxerguem as deps do
+# projeto. Rodar com o python do sistema faz o pylint reportar dezenas de
+# E0401 (unable-to-import) e derruba o score artificialmente.
+VENV ?= .venv
+PY := $(VENV)/bin/python
+
 metrics-install:
-	pip install -r scripts/requirements-metrics.txt
+	$(PY) -m pip install -r scripts/requirements-metrics.txt
 
 metrics:
-	python scripts/metrics.py
+	$(PY) -m pytest --cov=src --cov-report=json
+	$(PY) scripts/metrics.py

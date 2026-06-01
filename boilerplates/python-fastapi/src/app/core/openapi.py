@@ -24,7 +24,7 @@ def configure_openapi(app: FastAPI) -> None:
             }
         }
 
-        PUBLIC_PATHS = {
+        public_paths = {
             "/health",
             "/auth/register",
             "/auth/session",
@@ -34,7 +34,7 @@ def configure_openapi(app: FastAPI) -> None:
         }
 
         for path in openapi_schema["paths"]:
-            if path in PUBLIC_PATHS:
+            if path in public_paths:
                 continue
             for method in openapi_schema["paths"][path]:
                 openapi_schema["paths"][path][method]["security"] = [{"BearerAuth": []}]
