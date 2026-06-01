@@ -268,6 +268,7 @@ function collectComplexity() {
         allCC.push(...fileCCs);
         totalFunctions += funcs.length;
 
+        // MI per function (mirrors radon: use each function's own LOC + Halstead)
         const funcMIs = funcs.map((f) => computeMI(f.halstead.volume, f.cc, f.loc));
         perFileMI[relPath] = Number(
           (funcMIs.reduce((a, b) => a + b, 0) / funcMIs.length).toFixed(2),
@@ -452,7 +453,7 @@ function collectLint() {
 }
 
 function collectAudit() {
-  const { stdout } = run("npm audit --json");
+  const { stdout } = run("pnpm audit --prod --json");
 
   let vulns: {
     info: number;
@@ -485,8 +486,8 @@ function collectAudit() {
     security: {
       passed,
       output: summary
-        ? `npm audit: ${summary} vulnerabilities`
-        : "npm audit: no vulnerabilities found",
+        ? `pnpm audit: ${summary} vulnerabilities`
+        : "pnpm audit: no vulnerabilities found",
       thresholds: {
         max_absolute: "0 high/critical",
         max_modules: "0 high/critical",
@@ -571,7 +572,7 @@ function generateMarkdown(report: Record<string, unknown>): string {
     `| Score (0–10) | ${lint.score} |`,
     `| Resumo       | ${lint.score_line} |`,
     ``,
-    `## Segurança (npm audit)`,
+    `## Segurança (pnpm audit)`,
     ``,
     `| Métrica | Valor |`,
     `|---------|-------|`,
@@ -618,7 +619,7 @@ function main() {
   console.log("  → Executando biome check...");
   const lint = collectLint();
 
-  console.log("  → Executando npm audit...");
+  console.log("  → Executando pnpm audit...");
   const audit = collectAudit();
 
   const report = {

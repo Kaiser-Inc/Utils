@@ -19,6 +19,22 @@
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
+  "overrides": {
+    "@xmldom/xmldom": "^0.9.10",
+    "tar": "^7.5.15",
+    "cacache": "^21.0.0",
+    "postcss": ">=8.5.10",
+    "uuid": "^11.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@xmldom/xmldom": "^0.9.10",
+      "tar": "^7.5.15",
+      "cacache": "^21.0.0",
+      "postcss": ">=8.5.10",
+      "uuid": "^11.1.0"
+    }
+  },
   "dependencies": {
     "@expo-google-fonts/roboto": "^0.2.3",
     "@hookform/resolvers": "^3.10.0",

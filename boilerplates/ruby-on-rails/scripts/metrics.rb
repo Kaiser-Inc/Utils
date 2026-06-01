@@ -194,6 +194,12 @@ end
 def collect_halstead_ripper
   require "ripper"
 
+  # Structural keywords — declaration/block delimiters, not computational operators.
+  # Halstead counts only operators that affect program logic/computation.
+  # Kept: if, unless, while, until, for, case, when, return, yield, raise, rescue,
+  #        and, or, not, nil, true, false, else, elsif, then, in, break, next, retry.
+  structural_kw = %w[def end class module do begin ensure self super alias undef].freeze
+
   ruby_files = Dir.glob(File.join(ROOT, "app/**/*.rb")) +
                Dir.glob(File.join(ROOT, "lib/**/*.rb"))
 
@@ -211,7 +217,13 @@ def collect_halstead_ripper
 
     tokens.each do |_pos, type, value|
       case type
-      when :on_op, :on_kw
+      when :on_op
+        ops[value] += 1
+      when :on_kw
+        # Keep control-flow / logical / boolean keywords as operators (if, while,
+        # return, and, or, not, nil, true, false, rescue, raise, yield, etc.).
+        # Exclude purely structural keywords that inflate vocabulary artificially.
+        next if structural_kw.include?(value)
         ops[value] += 1
       when :on_ident, :on_const, :on_cvar, :on_ivar, :on_gvar
         opds[value] += 1

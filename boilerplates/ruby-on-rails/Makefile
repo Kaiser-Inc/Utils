@@ -51,6 +51,14 @@ audit:
 seed:
 	bin/rails db:seed
 
+# Sobe o Postgres, prepara o schema de teste e roda a suíte ANTES das métricas.
+# O DATABASE_URL aponta para localhost (porta publicada pelo compose) porque o
+# host "db" só resolve dentro da rede Docker — rodar rspec fora do container sem
+# isso faz todos os specs abortarem e o SimpleCov reportar 0% de cobertura.
+METRICS_DATABASE_URL ?= postgresql://postgres:postgres@localhost:5432/boilerplate_test
 metrics:
-	bundle exec rspec --no-color -f progress || true
-	bundle exec ruby scripts/metrics.rb
+	@docker compose up -d --wait db
+	@trap 'docker compose rm -sf db' EXIT; \
+		RAILS_ENV=test DATABASE_URL=$(METRICS_DATABASE_URL) bundle exec rails db:prepare && \
+		{ RAILS_ENV=test DATABASE_URL=$(METRICS_DATABASE_URL) bundle exec rspec --no-color -f progress || true; } && \
+		bundle exec ruby scripts/metrics.rb

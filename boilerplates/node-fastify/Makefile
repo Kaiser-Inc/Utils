@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate load-test audit seed metrics
+.PHONY: dev test lint format generate migrate load-test audit seed metrics
 
 dev:
 	pnpm dev
@@ -11,6 +11,9 @@ lint:
 
 format:
 	pnpm format
+
+generate:
+	pnpm db:generate
 
 migrate:
 	pnpm db:migrate
