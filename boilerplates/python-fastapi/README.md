@@ -19,9 +19,21 @@ API REST com autenticação dual-token, Clean Architecture + DDD e ambiente Dock
 
 ## Início rápido
 
+Gerenciador de pacotes: [uv](https://docs.astral.sh/uv/). Instale com:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
 ```bash
 cp .env.example .env
 docker compose up
+```
+
+Para desenvolvimento local sem Docker, instale as dependências:
+
+```bash
+make install   # uv sync
 ```
 
 | Serviço | URL |
@@ -33,6 +45,7 @@ docker compose up
 ## Comandos
 
 ```bash
+make install         # Instalar dependências (uv sync)
 make dev             # Iniciar em modo dev (sem Docker)
 make test            # Rodar testes com cobertura
 make migrate         # Rodar migrations Alembic
@@ -41,7 +54,6 @@ make format          # Formatar código (ruff format)
 make seed            # Popular banco com dados de dev
 make audit           # Checar vulnerabilidades (pip-audit)
 make load-test       # Rodar Locust via Docker
-make metrics-install # Instalar ferramentas de métricas
 make metrics         # Coletar métricas e gerar relatório
 ```
 
@@ -49,17 +61,13 @@ make metrics         # Coletar métricas e gerar relatório
 
 Suporte a coleta de métricas estáticas e dinâmicas para análise comparativa e estudos acadêmicos.
 
-### Instalação
-
-```bash
-make metrics-install
-```
-
 ### Coleta
 
 ```bash
 make metrics
 ```
+
+O alvo já sincroniza o grupo `metrics` (`uv sync --group metrics`) antes de coletar.
 
 Gera arquivos em `metrics/`:
 - `report_YYYY-MM-DD_HHMMSS.json` — dados brutos + sumário estruturado

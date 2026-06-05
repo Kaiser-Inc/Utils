@@ -9,4 +9,4 @@ engine = create_engine(
     future=True,
 )
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)  # pylint: disable=invalid-name

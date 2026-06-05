@@ -28,8 +28,8 @@ def test_app(user_repository, refresh_token_repository):
     app = create_app(testing=True)
 
     app.dependency_overrides[get_user_repository] = lambda: user_repository
-    app.dependency_overrides[get_refresh_token_repository] = (
-        lambda: refresh_token_repository
+    app.dependency_overrides[get_refresh_token_repository] = lambda: (
+        refresh_token_repository
     )
 
     return TestClient(app)

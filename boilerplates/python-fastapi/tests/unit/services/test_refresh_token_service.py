@@ -70,9 +70,12 @@ def test_execute_rotates_tokens(
     assert "access_token" in result
     assert "refresh_token" in result
     # novo refresh token registrado no repositório
-    assert token_repository.exists(
-        token_service.hash_refresh_token(result["refresh_token"])
-    ) is True
+    assert (
+        token_repository.exists(
+            token_service.hash_refresh_token(result["refresh_token"])
+        )
+        is True
+    )
 
 
 def test_execute_rejects_garbage_token(service):
@@ -91,9 +94,7 @@ def test_execute_rejects_wrong_token_type(service):
 
 
 def test_execute_rejects_missing_sub(service):
-    token = jwt.encode(
-        {"type": "refresh"}, settings.secret_key, algorithm="HS256"
-    )
+    token = jwt.encode({"type": "refresh"}, settings.secret_key, algorithm="HS256")
 
     with pytest.raises(ValueError, match="Invalid token payload"):
         service.execute(token)
