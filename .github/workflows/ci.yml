@@ -104,11 +104,12 @@ jobs:
       - name: Test
         run: uv run pytest --cov=src --cov-report=term-missing
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/boilerplate_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: boilerplate_test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
           SECRET_KEY: ci-test-secret-key-32-chars-long!!
-          ACCESS_TOKEN_EXPIRE_MINUTES: 15
-          REFRESH_TOKEN_EXPIRE_DAYS: 7
-          OTLP_ENDPOINT: ""
 
       - name: Audit
         run: uv run pip-audit
