@@ -1,7 +1,0 @@
-radon>=6.0
-pylint>=3.0
-xenon>=0.9
-openpyxl>=3.1
-matplotlib>=3.8
-pip-audit>=2.7
-ruff>=0.4

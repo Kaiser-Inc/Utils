@@ -1,3 +1,50 @@
+[project]
+name = "boilerplate-python"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "alembic==1.18.3",
+    "bcrypt==4.2.1",
+    "email-validator==2.3.0",
+    "fastapi==0.136.3",
+    "scalar-fastapi==1.8.2",
+    "grpcio==1.78.0",
+    "httpx==0.28.1",
+    "opentelemetry-api==1.39.1",
+    "opentelemetry-exporter-otlp==1.39.1",
+    "opentelemetry-exporter-otlp-proto-grpc==1.39.1",
+    "opentelemetry-instrumentation==0.60b1",
+    "opentelemetry-instrumentation-fastapi==0.60b1",
+    "opentelemetry-instrumentation-sqlalchemy==0.60b1",
+    "opentelemetry-sdk==1.39.1",
+    "psycopg2-binary==2.9.11",
+    "pydantic==2.12.5",
+    "pydantic-settings==2.12.0",
+    "PyJWT==2.13.0",
+    "SQLAlchemy==2.0.46",
+    "starlette==1.2.0",
+    "uvicorn==0.40.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.0.3",
+    "pytest-cov==7.0.0",
+    "ruff==0.15.2",
+    "pip-audit>=2.7",
+]
+metrics = [
+    "radon>=6.0",
+    "pylint>=3.0",
+    "xenon>=0.9",
+    "openpyxl>=3.1",
+    "matplotlib>=3.8",
+    {include-group = "dev"},
+]
+
+[tool.uv]
+package = false
+
 [tool.ruff]
 target-version = "py312"
 line-length = 88

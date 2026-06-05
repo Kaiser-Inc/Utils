@@ -14,7 +14,7 @@ Uso:
   python scripts/metrics.py --src app/       # projetos Flask/outros
 
 Requer:
-  pip install -r requirements-metrics.txt
+  uv sync --group metrics
 """
 import argparse
 import json
@@ -127,7 +127,7 @@ def collect_ruff(src: str) -> dict:
 
 def collect_security() -> dict:
     """Auditoria de vulnerabilidades via pip-audit."""
-    code, out, err = run(py("pip_audit", "--format=json", "-r", str(ROOT / "requirements.txt")))
+    code, out, err = run(py("pip_audit", "--format=json"))
     try:
         data = json.loads(out)
     except json.JSONDecodeError:

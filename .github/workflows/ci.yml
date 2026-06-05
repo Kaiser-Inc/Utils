@@ -92,20 +92,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-          cache: pip
+          enable-cache: true
 
-      - run: pip install -r requirements.txt pip-audit
+      - run: uv sync --frozen
 
       - name: Lint
-        run: ruff check src tests
+        run: uv run ruff check src tests
 
       - name: Test
-        run: pytest --cov=src --cov-report=term-missing
+        run: uv run pytest --cov=src --cov-report=term-missing
         env:
-          ENV: test
           DB_HOST: localhost
           DB_PORT: 5432
           DB_NAME: boilerplate_test
@@ -114,7 +112,7 @@ jobs:
           SECRET_KEY: ci-test-secret-key-32-chars-long!!
 
       - name: Audit
-        run: pip-audit -r requirements.txt
+        run: uv run pip-audit
 
   # ── Ruby on Rails ─────────────────────────────────────────────────────────
   ruby-on-rails:

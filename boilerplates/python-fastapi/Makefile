@@ -1,38 +1,33 @@
-.PHONY: dev test lint format migrate load-test audit seed metrics metrics-install
+.PHONY: install dev test lint format migrate load-test audit seed metrics
+
+install:
+	uv sync
 
 dev:
-	uvicorn main:app --reload --app-dir src
+	uv run uvicorn main:app --reload --app-dir src
 
 test:
-	pytest --cov=src --cov-report=term-missing
+	uv run pytest --cov=src --cov-report=term-missing
 
 lint:
-	ruff check src tests
+	uv run ruff check src tests
 
 format:
-	ruff format src tests
+	uv run ruff format src tests
 
 migrate:
-	alembic upgrade head
+	uv run alembic upgrade head
 
 load-test:
 	docker compose -f load-tests/docker-compose.loadtest.yml up --build
 
 audit:
-	pip-audit -r requirements.txt
+	uv run pip-audit
 
 seed:
-	python scripts/seed.py
-
-# Usa o interpretador do venv para que pylint/radon/pytest enxerguem as deps do
-# projeto. Rodar com o python do sistema faz o pylint reportar dezenas de
-# E0401 (unable-to-import) e derruba o score artificialmente.
-VENV ?= .venv
-PY := $(VENV)/bin/python
-
-metrics-install:
-	$(PY) -m pip install -r scripts/requirements-metrics.txt
+	uv run python scripts/seed.py
 
 metrics:
-	$(PY) -m pytest --cov=src --cov-report=json
-	$(PY) scripts/metrics.py
+	uv sync --group metrics
+	uv run --group metrics pytest --cov=src --cov-report=json
+	uv run --group metrics python scripts/metrics.py

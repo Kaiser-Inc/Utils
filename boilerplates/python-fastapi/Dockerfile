@@ -4,9 +4,7 @@ FROM python:3.12-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PYTHONPATH=/app/src
 
 WORKDIR /app
 
@@ -17,28 +15,33 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Stage 2: builder ──────────────────────────────────────────────────────────
-# Compila wheels de todas as dependências — não vai para produção
+# Resolve e instala as dependências em /app/.venv via uv — não vai para produção
 FROM base AS builder
+
+# Binário uv pinado (imagem oficial Astral)
+COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /bin/
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
       build-essential \
       libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-
-# Compila e armazena as wheels em /wheels (sem acesso à internet na etapa final)
-# --no-deps omitido propositalmente: inclui dependências transitivas nas wheels
-RUN pip install --upgrade pip \
-    && pip wheel --wheel-dir /wheels -r requirements.txt
+# Camada cacheável: só os manifestos. Instala apenas runtime (--no-dev).
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
 # ── Stage 3: runtime ──────────────────────────────────────────────────────────
-# Imagem final: copia apenas as wheels pré-compiladas, sem build tools
+# Imagem final: copia apenas o virtualenv pronto, sem uv nem build tools
 FROM base AS runtime
 
-COPY --from=builder /wheels /wheels
-RUN pip install --no-index --find-links=/wheels /wheels/* \
-    && rm -rf /wheels
+COPY --from=builder /app/.venv /app/.venv
+
+# Faz alembic/uvicorn do venv resolverem sem precisar de `uv run`
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Usuário não-root para segurança
 RUN useradd --create-home --shell /bin/bash appuser
